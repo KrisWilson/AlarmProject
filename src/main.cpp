@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <PinsDef.h>
 #include <EEPROM.h>
-#include <Keypad.h> //chyba trzeba doinstalować bibliotekę
+#include <Keypad.h>
 
 // 0x001	Password	   1015	Numeric password (max storage)
 // 0x3F8	Date	          3	(YY MM DD) - 1 byte each
@@ -15,6 +15,14 @@
 #define timeAddress 0x3fB
 #define exitTimeAddress 0x3fe
 #define backlightTimeAddress 0x3fc
+
+int currentMenuOption = 0;
+// Menu: (wyświetla się jedna linia)
+// 0:  12.03.25 12:00
+// 1:  Zmiana hasła
+// 2:  Zmiana godziny
+// 3:  Zmiana czasu na wyjście
+//
 
 String passwordFromMemory = "";
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
@@ -56,6 +64,114 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 // 4. Uzbrojony           - czujnik krańcowy i ruchu aktywne
 // 5. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
 
+void enterMenuOption(int option)
+{
+  switch (option)
+  {
+  case 2:
+    // Kod do zmiany daty i godziny
+    break;
+    //...
+  }
+}
+
+void ShowMenuOption(int option)
+{
+  switch (option){
+  case 0:
+    // wyświetlenie daty i godziny
+    Serial.println("Data i godzina: ");
+    break;
+  case 1:
+    // zmiana hasła
+    Serial.println("Zmiana hasła: ");
+    break;
+  case 2:
+    // zmiana daty i godziny
+    Serial.println("Zmiana daty i godziny: ");
+    break;
+  case 3:
+    // zmiana czasu na wyjście
+    Serial.println("Zmiana czasu na wyjście: ");
+    break;
+  case 4:
+    // zmiana czasu podświetlenia ekranu
+    Serial.println("Zmiana czasu podświetlenia ekranu: ");
+    break;
+  default:
+    // wyświetlenie daty i godziny
+    Serial.println("Data i godzina: ");
+    break;
+  }
+}
+
+String ReadPassword()
+{
+  String password = "";
+  char key = keypad.getKey();
+  while (key != '#')
+  {
+    if (key != NO_KEY)
+    {
+      password += key;
+      Serial.print(key);
+    }
+    key = keypad.getKey();
+  }
+  Serial.println();
+  return password;
+}
+
+bool DetectMovement()
+{
+  while (true)
+  {
+    // Czujnik ruchu
+    if (digitalRead(pirSensor) == HIGH)
+    {
+      return true;
+    }
+    // Czujnik krańcowy
+    if (digitalRead(doorSensor) == HIGH)
+    {
+      return true;
+    }
+  }
+}
+
+void ArmedSystem()
+{
+  // Wyświetlenie odliczania zadanego przez użytkownika
+  int i = 0;
+  while (i < 30)
+  {
+    Serial.print(i);
+    delay(1000);
+    i++;
+  }
+  // beep beep system uzbrojony
+  if (DetectMovement()) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
+  {
+  // Oliczanie 30 sekund na wpisanie hasła
+  // jak to zrobić jeśli nie masz multithreadingu?
+  int passwordAttempts = 0;
+  passwordInput:
+    Serial.println("Podaj hasło: ");
+    String password = ReadPassword();
+    if (password != passwordFromMemory && passwordAttempts < 3)
+    {
+      Serial.println("Hasło jest niepoprawne!");
+      passwordAttempts++;
+      goto passwordInput;
+    }
+    else if (password != passwordFromMemory && passwordAttempts >= 3)
+    {
+      Serial.println("Podano 3 błędne hasła! Uruchominie alarmu");
+      // ALARM!!!!!!!!!!!!!!!!!!!!!!! WOŁAJTA POLICJE ZŁODZIEJE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
+  }
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -71,7 +187,7 @@ void setup()
     // Wypisanie tekstu powitalnego
     Serial.println("Witaj w systemie alarmowym HOMESEC XD");
     Serial.println("Konfiguracja systemu...");
-  passwrodsection:
+  passwordSection:
     Serial.println("Wprowadź hasło do systemu:");
     // Wprowadź hasło do systemu max długość 1015 znaków
     String password = ReadPassword(); // zastąp ReadPassword() funkcją do odczytu hasła
@@ -128,8 +244,8 @@ void setup()
     // Wpisanie hasła i porównanie z hasłem z pamięci
     int passwordAttempts = 0;
   passwordInput:
-    Serial.println("Podaj hasło: ")
-        String password = ReadPassword();
+    Serial.println("Podaj hasło: ");
+    String password = ReadPassword();
     if (password != passwordFromMemory && passwordAttempts < 3)
     {
       Serial.println("Hasło jest niepoprawne!");
@@ -151,100 +267,50 @@ void loop()
   // wyświetlanie aktualnej daty i czasu
   // niżej wyświetlanie menu
   // możliwośc uzbrojenia systemu ...
-  switch (key):
+  char key = keypad.getKey();
+  switch (key)
+    {
     case '#': // wprowadzenie hasła i uzbrojenie systemu
-      passwordInput:
-        Serial.println("Podaj hasło: ")
-            String password = ReadPassword();
-        if (password != passwordFromMemory && passwordAttempts < 3)
-        {
-          Serial.println("Hasło jest niepoprawne!");
-          passwordAttempts++;
-          goto passwordInput;
-        }
+    int passwordAttempts = 0;
+    passwordInput:
+      Serial.println("Podaj hasło: ");
+      String password = ReadPassword();
+      if (password != passwordFromMemory && passwordAttempts < 3)
+      {
+        Serial.println("Hasło jest niepoprawne!");
+        passwordAttempts++;
+        goto passwordInput;
+      }
       else if (password != passwordFromMemory && passwordAttempts >= 3)
       {
         Serial.println("Za dużo prób!");
         // ALARM ???
       }
       // Uzbrojenie systemu
-      armedSystem();
+      ArmedSystem();
 
-  break;
-case '1':
-  // przejście wyżej w menu
-  break;
-case '9':
-  // przejście niżej w menu
-  break;
-case '6':
-  // wejście do opcji w menu
-  break;
-default:
-
-  break;
-}
-
-void armedSystem(){
-  // Wyświetlenie odliczania zadanego przez użytkownika
-  while(i<30)
-  {
-    Serial.print(i);
-    delay(1000);
-    i++;
-  }
-  // beep beep system uzbrojony 
-  if(DetectMovement())  // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
-  {
-    // Oliczanie 30 sekund na wpisanie hasła
-    // jak to zrobić jeśli nie masz multithreadingu?
-    passwordInput:
-        Serial.println("Podaj hasło: ")
-            String password = ReadPassword();
-        if (password != passwordFromMemory && passwordAttempts < 3)
-        {
-          Serial.println("Hasło jest niepoprawne!");
-          passwordAttempts++;
-          goto passwordInput;
-        }
-      else if (password != passwordFromMemory && passwordAttempts >= 3)
+      break;
+    case '1':
+      // przejście wyżej w menu
+      if (currentMenuOption > 0)
       {
-        Serial.println("Podano 3 błędne hasła! Uruchominie alarmu");
-        // ALARM!!!!!!!!!!!!!!!!!!!!!!! WOŁAJTA POLICJE ZŁODZIEJE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        currentMenuOption--;
       }
-  }
-}
 
-string ReadPassword()
-{
-  string password = "";
-  char key = keypad.getKey();
-  while (key != '#')
-  {
-    if (key != NO_KEY)
-    {
-      password += key;
-      Serial.print(key);
-    }
-    key = keypad.getKey();
-  }
-  Serial.println();
-  return password;
-}
+      break;
+    case '9':
+      // przejście niżej w menu
+      if (currentMenuOption < 6)
+      {
+        currentMenuOption++;
+      }
+      break;
+    case '6':
+      // wejście do opcji w menu
+      enterMenuOption(currentMenuOption);
+      break;
+    default:
 
-bool DetectMovement()
-{
-  while (true)
-  {
-    // Czujnik ruchu
-    if (digitalRead(pirSensor) == HIGH)
-    {
-      return true;
-    }
-    // Czujnik krańcowy
-    if (digitalRead(doorSensor) == HIGH)
-    {
-      return true;
-    }
+      break;
   }
 }
