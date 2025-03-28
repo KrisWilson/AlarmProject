@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <PinsDef.h>
 #include <EEPROM.h>
+#include <Keypad.h> //chyba trzeba doinstalować bibliotekę
 
 // 0x001	Password	   1015	Numeric password (max storage)
 // 0x3F8	Date	          3	(YY MM DD) - 1 byte each
@@ -14,6 +15,9 @@
 #define timeAddress 0x3fB
 #define exitTimeAddress 0x3fe
 #define backlightTimeAddress 0x3fc
+
+String passwordFromMemory = "";
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //                                 Temat projektu                                           //                                                                              //
@@ -61,79 +65,186 @@ void setup()
   // https://www.digikey.com/en/maker/blogs/2021/how-to-permanently-store-data-on-an-arduinos-built-in-eeprom
 
   // Sprawdzanie czy istnieje konfiguracja
-    bool configExist = (bool)EEPROM.read(configExistAddress);  //?? Odczytanie pierwszego bajtu z pamięci ??
-    if(!configExist){
-      // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
-      EEPROM.write(configExistAddress, 0x01); // sprawdź czy to działa 
-      
-      // Wypisanie tekstu powitalnego
-      Serial.println("Witaj w systemie alarmowym HOMESEC XD");
-      Serial.println("Konfiguracja systemu...");
-      Serial.println("Wprowadź hasło do systemu:");
-      // Wprowadź hasło do systemu max długość 1015 znaków 
-      String password = ReadPassword();
-      
-      // Zapisz hasło do systemu 
-      for(int i = 0; i < strlen(password); i++)
-      {
-        byte byteAtCurrentStringPosition = (byte) password[i];
-        EEPROM.write(passwordAddress + i, byteAtCurrentStringPosition);
-      }
-      //Zapisz date i czas
-      Serial.println("Wprowadź date (YY MM DD):");
-      String date = ReadDate();
-      for(int i = 0; i < strlen(date); i++)
-      {
-        byte byteAtCurrentStringPosition = (byte) date[i];
-        EEPROM.write(dateAddress + i, byteAtCurrentStringPosition);
-      }
-      Serial.println("Wprowadź czas (HH MM SS):");
-      String time = ReadTime();
-      for(int i = 0; i < strlen(time); i++)
-      {
-        byte byteAtCurrentStringPosition = (byte) time[i];
-        EEPROM.write(timeAddress + i, byteAtCurrentStringPosition);
-      }
-      //Zapisz czas na wyjście po zabezpieczeniu
-      Serial.println("Wprowadź czas na wyjście po zabezpieczeniu (s):");
-      int exitTime = ReadExitTime();
-      EEPROM.write(exitTimeAddress, exitTime);
-      //Zapisz czas podświetlenia ekranu
-      Serial.println("Wprowadź czas podświetlenia ekranu (s):");
-      int backlightTime = ReadBacklightTime();
-      EEPROM.write(backlightTimeAddress, backlightTime);
-    }else{
-      // podaj hasło do systemu 
-
-    }
-    
-   
-    
-
-  }
-
-  void loop()
+  bool configExist = (bool)EEPROM.read(configExistAddress); //?? Odczytanie pierwszego bajtu z pamięci ??
+  if (!configExist)
   {
-    // wyświetlanie aktualnej daty i czasu
-    // wyświetlanie menu
-    // możliwośc uzbrojenia systemu ...
-
-  }
-  
-  
-  bool DetectMovement()
-  {
-    while (true)
+    // Wypisanie tekstu powitalnego
+    Serial.println("Witaj w systemie alarmowym HOMESEC XD");
+    Serial.println("Konfiguracja systemu...");
+  passwrodsection:
+    Serial.println("Wprowadź hasło do systemu:");
+    // Wprowadź hasło do systemu max długość 1015 znaków
+    String password = ReadPassword(); // zastąp ReadPassword() funkcją do odczytu hasła
+    if (password.length() > 1015)
     {
-      // Czujnik ruchu
-      if (digitalRead(pirSensor) == HIGH)
-      {
-        return true;
-      }
-      // Czujnik krańcowy
-      if (digitalRead(doorSensor) == HIGH)
-      {
-        return true;
-      }
+      Serial.println("Hasło jest za długie!");
+      goto passwordSection;
+    }
+    // Zapisz hasło do EEPROM i do pamięci podręcznej
+    passwordFromMemory = password;
+    for (int i = 0; i < strlen(password); i++)
+    {
+      byte byteAtCurrentStringPosition = (byte)password[i];
+      EEPROM.write(passwordAddress + i, byteAtCurrentStringPosition);
+    }
+    // Zapisz date i czas
+    Serial.println("Wprowadź date (YY MM DD):");
+    String date = ReadDate(); // zastąp ReadDate() funkcją do odczytu daty
+    for (int i = 0; i < strlen(date); i++)
+    {
+      byte byteAtCurrentStringPosition = (byte)date[i];
+      EEPROM.write(dateAddress + i, byteAtCurrentStringPosition);
+    }
+    Serial.println("Wprowadź czas (HH MM SS):");
+    String time = ReadTime();
+    for (int i = 0; i < strlen(time); i++)
+    {
+      byte byteAtCurrentStringPosition = (byte)time[i];
+      EEPROM.write(timeAddress + i, byteAtCurrentStringPosition);
+    }
+    // Zapisz czas na wyjście po zabezpieczeniu
+    Serial.println("Wprowadź czas na wyjście po zabezpieczeniu (s):");
+    int exitTime = ReadExitTime();
+    EEPROM.write(exitTimeAddress, exitTime);
+    // Zapisz czas podświetlenia ekranu
+    Serial.println("Wprowadź czas podświetlenia ekranu (s):");
+    int backlightTime = ReadBacklightTime();
+    EEPROM.write(backlightTimeAddress, backlightTime);
+
+    // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
+    EEPROM.write(configExistAddress, 0x01); // sprawdź czy to działa
+  }
+  else
+  {
+    // Sprawdź czy hasło jest poprawne
+    // Odczytaj hasło z pamięci
+    for (int i = 0; i < 1015; i++)
+    {
+      byte byteAtCurrentStringPosition = EEPROM.read(passwordAddress + i);
+      if (byteAtCurrentStringPosition == 0)
+        break; // koniec hasła
+      passwordFromMemory += (char)byteAtCurrentStringPosition;
+    }
+    // Wpisanie hasła i porównanie z hasłem z pamięci
+    int passwordAttempts = 0;
+  passwordInput:
+    Serial.println("Podaj hasło: ")
+        String password = ReadPassword();
+    if (password != passwordFromMemory && passwordAttempts < 3)
+    {
+      Serial.println("Hasło jest niepoprawne!");
+      passwordAttempts++;
+      goto passwordInput;
+    }
+    else if (password != passwordFromMemory && passwordAttempts >= 3)
+    {
+      Serial.println("Za dużo prób!");
+      // ALARM ???
     }
   }
+}
+
+void loop()
+{
+  // Stan po włączeniu: Rozbrojony
+  // czy da się w ogóle wyświetlać czas jeśli nie ma multithreadingu?
+  // wyświetlanie aktualnej daty i czasu
+  // niżej wyświetlanie menu
+  // możliwośc uzbrojenia systemu ...
+  switch (key):
+    case '#': // wprowadzenie hasła i uzbrojenie systemu
+      passwordInput:
+        Serial.println("Podaj hasło: ")
+            String password = ReadPassword();
+        if (password != passwordFromMemory && passwordAttempts < 3)
+        {
+          Serial.println("Hasło jest niepoprawne!");
+          passwordAttempts++;
+          goto passwordInput;
+        }
+      else if (password != passwordFromMemory && passwordAttempts >= 3)
+      {
+        Serial.println("Za dużo prób!");
+        // ALARM ???
+      }
+      // Uzbrojenie systemu
+      armedSystem();
+
+  break;
+case '1':
+  // przejście wyżej w menu
+  break;
+case '9':
+  // przejście niżej w menu
+  break;
+case '6':
+  // wejście do opcji w menu
+  break;
+default:
+
+  break;
+}
+
+void armedSystem(){
+  // Wyświetlenie odliczania zadanego przez użytkownika
+  while(i<30)
+  {
+    Serial.print(i);
+    delay(1000);
+    i++;
+  }
+  // beep beep system uzbrojony 
+  if(DetectMovement())  // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
+  {
+    // Oliczanie 30 sekund na wpisanie hasła
+    // jak to zrobić jeśli nie masz multithreadingu?
+    passwordInput:
+        Serial.println("Podaj hasło: ")
+            String password = ReadPassword();
+        if (password != passwordFromMemory && passwordAttempts < 3)
+        {
+          Serial.println("Hasło jest niepoprawne!");
+          passwordAttempts++;
+          goto passwordInput;
+        }
+      else if (password != passwordFromMemory && passwordAttempts >= 3)
+      {
+        Serial.println("Podano 3 błędne hasła! Uruchominie alarmu");
+        // ALARM!!!!!!!!!!!!!!!!!!!!!!! WOŁAJTA POLICJE ZŁODZIEJE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      }
+  }
+}
+
+string ReadPassword()
+{
+  string password = "";
+  char key = keypad.getKey();
+  while (key != '#')
+  {
+    if (key != NO_KEY)
+    {
+      password += key;
+      Serial.print(key);
+    }
+    key = keypad.getKey();
+  }
+  Serial.println();
+  return password;
+}
+
+bool DetectMovement()
+{
+  while (true)
+  {
+    // Czujnik ruchu
+    if (digitalRead(pirSensor) == HIGH)
+    {
+      return true;
+    }
+    // Czujnik krańcowy
+    if (digitalRead(doorSensor) == HIGH)
+    {
+      return true;
+    }
+  }
+}
