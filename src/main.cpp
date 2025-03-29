@@ -9,6 +9,7 @@
 // 0x3FE	Exit Time	      2	(Seconds, 16-bit integer)
 // 0x3FC	Backlight Time	2	(Seconds, 16-bit integer)
 
+#define EEPROM_SIZE 1024
 #define configExistAddress 0x00
 #define passwordAddress 0x001
 #define dateAddress 0x3f8
@@ -77,7 +78,8 @@ void enterMenuOption(int option)
 
 void ShowMenuOption(int option)
 {
-  switch (option){
+  switch (option)
+  {
   case 0:
     // wyświetlenie daty i godziny
     Serial.println("Data i godzina: ");
@@ -152,9 +154,9 @@ void ArmedSystem()
   // beep beep system uzbrojony
   if (DetectMovement()) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
   {
-  // Oliczanie 30 sekund na wpisanie hasła
-  // jak to zrobić jeśli nie masz multithreadingu?
-  int passwordAttempts = 0;
+    // Oliczanie 30 sekund na wpisanie hasła
+    // jak to zrobić jeśli nie masz multithreadingu? 
+    int passwordAttempts = 0;
   passwordInput:
     Serial.println("Podaj hasło: ");
     String password = ReadPassword();
@@ -172,23 +174,106 @@ void ArmedSystem()
   }
 }
 
+String ReadDate() // AI
+{
+  String date = "";
+  Serial.println("Enter date in format YY MM DD:");
+  while (date.length() < 8) // Expecting "YY MM DD" (7 characters + 1 space)
+  {
+    char key = keypad.getKey();
+    if (key != NO_KEY)
+    {
+      date += key;
+      Serial.print(key);
+    }
+  }
+  Serial.println();
+  return date;
+}
+
+String ReadTime() // AI
+{
+  String time = "";
+  Serial.println("Enter time in format HH MM SS:");
+  while (time.length() < 8) // Expecting "HH MM SS" (7 characters + 1 space)
+  {
+    char key = keypad.getKey();
+    if (key != NO_KEY)
+    {
+      time += key;
+      Serial.print(key);
+    }
+  }
+  Serial.println();
+  return time;
+}
+
+int ReadExitTime() // AI
+{
+  int exitTime = 0;
+  Serial.println("Enter exit time in seconds:");
+  while (true)
+  {
+    char key = keypad.getKey();
+    if (key != NO_KEY)
+    {
+      if (key >= '0' && key <= '9') // Only accept numeric input
+      {
+        exitTime = exitTime * 10 + (key - '0');
+        Serial.print(key);
+      }
+      else if (key == '#') // Confirm input with '#'
+      {
+        Serial.println();
+        break;
+      }
+    }
+  }
+  return exitTime;
+}
+
+int ReadBacklightTime() // AI
+{
+  int backlightTime = 0;
+  Serial.println("Enter backlight time in seconds:");
+  while (true)
+  {
+    char key = keypad.getKey();
+    if (key != NO_KEY)
+    {
+      if (key >= '0' && key <= '9') // Only accept numeric input
+      {
+        backlightTime = backlightTime * 10 + (key - '0');
+        Serial.print(key);
+      }
+      else if (key == '#') // Confirm input with '#'
+      {
+        Serial.println();
+        break;
+      }
+    }
+  }
+  return backlightTime;
+}
+
 void setup()
 {
+  EEPROM.begin(EEPROM_SIZE);
   Serial.begin(115200);
-  // tutaj sprawdzanie czy istanieje konfiguracja ale nie wiem jak i czy da się zapisać hasło na arduino do pamięci
-  // Jeśli konfiguracja nie istnieje to stwórz.
   // Używanie wewnętrznej pamięci arduino
   // https://www.digikey.com/en/maker/blogs/2021/how-to-permanently-store-data-on-an-arduinos-built-in-eeprom
+  // W Esp nie ma EEPROM za to używan się poamięci flash do zapisywania danych, biblioteka jest ta sama ale lekko inne użycie
 
   // Sprawdzanie czy istnieje konfiguracja
-  bool configExist = (bool)EEPROM.read(configExistAddress); //?? Odczytanie pierwszego bajtu z pamięci ??
+  // Jeśli tak to podaj hasło
+  // Jeśli nie to stwórz 
+  bool configExist = (bool)EEPROM.read(configExistAddress); // to trzeba pozmieniać na readBool ta samo jak na write bool
   if (!configExist)
   {
     // Wypisanie tekstu powitalnego
     Serial.println("Witaj w systemie alarmowym HOMESEC XD");
     Serial.println("Konfiguracja systemu...");
   passwordSection:
-    Serial.println("Wprowadź hasło do systemu:");
     // Wprowadź hasło do systemu max długość 1015 znaków
     String password = ReadPassword(); // zastąp ReadPassword() funkcją do odczytu hasła
     if (password.length() > 1015)
@@ -196,9 +281,8 @@ void setup()
       Serial.println("Hasło jest za długie!");
       goto passwordSection;
     }
-    // Zapisz hasło do EEPROM i do pamięci podręcznej
     passwordFromMemory = password;
-    for (int i = 0; i < strlen(password); i++)
+    for (int i = 0; i < password.length(); i++)
     {
       byte byteAtCurrentStringPosition = (byte)password[i];
       EEPROM.write(passwordAddress + i, byteAtCurrentStringPosition);
@@ -206,14 +290,14 @@ void setup()
     // Zapisz date i czas
     Serial.println("Wprowadź date (YY MM DD):");
     String date = ReadDate(); // zastąp ReadDate() funkcją do odczytu daty
-    for (int i = 0; i < strlen(date); i++)
+    for (int i = 0; i < date.length(); i++)
     {
       byte byteAtCurrentStringPosition = (byte)date[i];
       EEPROM.write(dateAddress + i, byteAtCurrentStringPosition);
     }
     Serial.println("Wprowadź czas (HH MM SS):");
     String time = ReadTime();
-    for (int i = 0; i < strlen(time); i++)
+    for (int i = 0; i < time.length(); i++)
     {
       byte byteAtCurrentStringPosition = (byte)time[i];
       EEPROM.write(timeAddress + i, byteAtCurrentStringPosition);
@@ -229,6 +313,8 @@ void setup()
 
     // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
     EEPROM.write(configExistAddress, 0x01); // sprawdź czy to działa
+
+    EEPROM.commit(); // faktyczne zapisanie danych do pamięci flash
   }
   else
   {
@@ -269,48 +355,62 @@ void loop()
   // możliwośc uzbrojenia systemu ...
   char key = keypad.getKey();
   switch (key)
-    {
-    case '#': // wprowadzenie hasła i uzbrojenie systemu
+  {
+  case '#': // wprowadzenie hasła i uzbrojenie systemu
+  {
     int passwordAttempts = 0;
-    passwordInput:
+    bool correctPasswordInput = false;
+    while (!correctPasswordInput)
+    {
       Serial.println("Podaj hasło: ");
       String password = ReadPassword();
       if (password != passwordFromMemory && passwordAttempts < 3)
       {
         Serial.println("Hasło jest niepoprawne!");
         passwordAttempts++;
-        goto passwordInput;
       }
       else if (password != passwordFromMemory && passwordAttempts >= 3)
       {
         Serial.println("Za dużo prób!");
         // ALARM ???
       }
-      // Uzbrojenie systemu
-      ArmedSystem();
-
-      break;
-    case '1':
-      // przejście wyżej w menu
-      if (currentMenuOption > 0)
+      else
       {
-        currentMenuOption--;
+        correctPasswordInput = true;
       }
+    }
+    // Uzbrojenie systemu
+    ArmedSystem();
 
-      break;
-    case '9':
-      // przejście niżej w menu
-      if (currentMenuOption < 6)
-      {
-        currentMenuOption++;
-      }
-      break;
-    case '6':
-      // wejście do opcji w menu
-      enterMenuOption(currentMenuOption);
-      break;
-    default:
+    break;
+  }
+  case '1':
+  {
+    // przejście wyżej w menu
+    if (currentMenuOption > 0)
+    {
+      currentMenuOption--;
+    }
 
-      break;
+    break;
+  }
+  case '9':
+  {
+    // przejście niżej w menu
+    if (currentMenuOption < 6)
+    {
+      currentMenuOption++;
+    }
+    break;
+  }
+  case '6':
+  {
+    // wejście do opcji w menu
+    enterMenuOption(currentMenuOption);
+    break;
+  }
+  default:
+
+    break;
   }
 }
