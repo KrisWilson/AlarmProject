@@ -1,3 +1,8 @@
+// TO DO
+//  usuń linijkę z zapisywaniem czasu do pamięci w konfiguracji 
+// przy każdorazowym włączeniu podawaj aktualną datę i godzinę 
+// rozpocznij nowy wątek z odliczaniem aktualnego czasu 
+
 #include <Arduino.h>
 #include <PinsDef.h>
 #include <EEPROM.h>
@@ -36,7 +41,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 // Lista elementów
-// Arduino R - kontroler całego systemu, wyświetla menu, odbiera sygnały z czujników
+// Arduino / esp32 - kontroler całego systemu, wyświetla menu, odbiera sygnały z czujników
 // Klawiatura
 // Czujnik pir
 // Czujnik krańcowy
