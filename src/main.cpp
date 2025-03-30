@@ -1,7 +1,6 @@
 // TO DO
-//  usuń linijkę z zapisywaniem czasu do pamięci w konfiguracji 
-// przy każdorazowym włączeniu podawaj aktualną datę i godzinę 
-// rozpocznij nowy wątek z odliczaniem aktualnego czasu 
+// przy każdorazowym włączeniu podawaj aktualną datę i godzinę
+// rozpocznij nowy wątek z odliczaniem aktualnego czasu
 
 #include <Arduino.h>
 #include <PinsDef.h>
@@ -9,8 +8,6 @@
 #include <Keypad.h>
 
 // 0x001	Password	   1015	Numeric password (max storage)
-// 0x3F8	Date	          3	(YY MM DD) - 1 byte each
-// 0x3FB	Time	          3	(HH MM SS) - 1 byte each
 // 0x3FE	Exit Time	      2	(Seconds, 16-bit integer)
 // 0x3FC	Backlight Time	2	(Seconds, 16-bit integer)
 
@@ -29,9 +26,14 @@ int currentMenuOption = 0;
 // 2:  Zmiana godziny
 // 3:  Zmiana czasu na wyjście
 //
-
+int day = 0, month = 0, year = 0, minutes = 0, hour = 0;
 String passwordFromMemory = "";
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
+int exitTime = 0; // czas na wyjście po zabezpieczeniu
+int backlightTime = 0; // czas podświetlenia ekranu
+TaskHandle_t clockTaskHandle = NULL;
+TaskHandle_t inputDelayTaskHandle = NULL;
+bool disarmed = false; // zmienna do rozbrojenia systemu
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //                                 Temat projektu                                           //                                                                              //
@@ -145,12 +147,30 @@ bool DetectMovement()
     }
   }
 }
+void inputDelay(void *pvParameters)
+{
+  int i = 0;
+  while(!disarmed){
+    delay(1000);
+    i++;
+    if (i >= 30)
+    {
+      // alarm
+      Serial.println("Alarm!");
+      // włączenie alarmu
+      // włączenie kamery
+      // włączenie syreny
+      // włączenie diod
+      break;
+    }
+  }
+}
 
 void ArmedSystem()
 {
   // Wyświetlenie odliczania zadanego przez użytkownika
   int i = 0;
-  while (i < 30)
+  while (i < exitTime)
   {
     Serial.print(i);
     delay(1000);
@@ -159,8 +179,16 @@ void ArmedSystem()
   // beep beep system uzbrojony
   if (DetectMovement()) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
   {
-    // Oliczanie 30 sekund na wpisanie hasła
-    // jak to zrobić jeśli nie masz multithreadingu? 
+    //Start odliczania 30s na wpisanie hasła w innym wątku 
+    xTaskCreatePinnedToCore(
+                          inputDelay, /* Task function. */
+                          "TaskClock",   /* name of task. */
+                          10000,     /* Stack size of task */
+                          NULL,      /* parameter of the task */
+                          1,         /* priority of the task */
+                          &inputDelayTaskHandle,    /* Task handle to keep track of created task */
+                          0);  
+                          
     int passwordAttempts = 0;
   passwordInput:
     Serial.println("Podaj hasło: ");
@@ -176,47 +204,28 @@ void ArmedSystem()
       Serial.println("Podano 3 błędne hasła! Uruchominie alarmu");
       // ALARM!!!!!!!!!!!!!!!!!!!!!!! WOŁAJTA POLICJE ZŁODZIEJE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
-  }
-}
-
-String ReadDate() // AI
-{
-  String date = "";
-  Serial.println("Enter date in format YY MM DD:");
-  while (date.length() < 8) // Expecting "YY MM DD" (7 characters + 1 space)
-  {
-    char key = keypad.getKey();
-    if (key != NO_KEY)
+    else
     {
-      date += key;
-      Serial.print(key);
+      disarmed = true;
+      Serial.println("System rozbrojony!");
+      // wyłączenie alarmu
+      // wyłączenie kamery
+      // wyłączenie syreny
+      // wyłączenie diod
+      vTaskDelete(inputDelayTaskHandle); // usunięcie taska odliczania czasu na wpisanie hasła
     }
   }
-  Serial.println();
-  return date;
 }
 
-String ReadTime() // AI
+// create function to read numeric input that will end input with '#' key and in paramaters have min and max value
+int ReadNumericInput(int min, int max) // AI
 {
-  String time = "";
-  Serial.println("Enter time in format HH MM SS:");
-  while (time.length() < 8) // Expecting "HH MM SS" (7 characters + 1 space)
-  {
-    char key = keypad.getKey();
-    if (key != NO_KEY)
-    {
-      time += key;
-      Serial.print(key);
-    }
-  }
-  Serial.println();
-  return time;
-}
-
-int ReadExitTime() // AI
-{
-  int exitTime = 0;
-  Serial.println("Enter exit time in seconds:");
+  int value = 0;
+  Serial.print("Enter a number between ");
+  Serial.print(min);
+  Serial.print(" and ");
+  Serial.print(max);
+  Serial.println(":");
   while (true)
   {
     char key = keypad.getKey();
@@ -224,42 +233,63 @@ int ReadExitTime() // AI
     {
       if (key >= '0' && key <= '9') // Only accept numeric input
       {
-        exitTime = exitTime * 10 + (key - '0');
+        value = value * 10 + (key - '0');
         Serial.print(key);
       }
       else if (key == '#') // Confirm input with '#'
       {
         Serial.println();
-        break;
+        if (value >= min && value <= max)
+          break;
+        else
+          Serial.println("Invalid input, try again.");
       }
     }
   }
-  return exitTime;
+  return value;
 }
 
-int ReadBacklightTime() // AI
+void clockTask(void *pvParameters)
 {
-  int backlightTime = 0;
-  Serial.println("Enter backlight time in seconds:");
+  // Funkcja do odliczania czasu
   while (true)
   {
-    char key = keypad.getKey();
-    if (key != NO_KEY)
+    // Odczytanie aktualnej daty i godziny
+    Serial.print("Aktualna data i godzina: ");
+    Serial.print(day);
+    Serial.print(".");
+    Serial.print(month);
+    Serial.print(".");
+    Serial.print(year);
+    Serial.print(" ");
+    Serial.print(hour);
+    Serial.print(":");
+    Serial.println(minutes);
+    vTaskDelay(1000*60 / portTICK_PERIOD_MS); //chyba to jest 1 minuta ale nie wiem lol
+    minutes++;
+    if (minutes >= 60)
     {
-      if (key >= '0' && key <= '9') // Only accept numeric input
+      minutes = 0;
+      hour++;
+      if (hour >= 24)
       {
-        backlightTime = backlightTime * 10 + (key - '0');
-        Serial.print(key);
-      }
-      else if (key == '#') // Confirm input with '#'
-      {
-        Serial.println();
-        break;
+        hour = 0;
+        day++;
+        if (day > 31)
+        {
+          day = 1;
+          month++;
+          if (month > 12)
+          {
+            month = 1;
+            year++;
+          }
+        }
       }
     }
   }
-  return backlightTime;
 }
+
 
 void setup()
 {
@@ -271,7 +301,7 @@ void setup()
 
   // Sprawdzanie czy istnieje konfiguracja
   // Jeśli tak to podaj hasło
-  // Jeśli nie to stwórz 
+  // Jeśli nie to stwórz
   bool configExist = (bool)EEPROM.read(configExistAddress); // to trzeba pozmieniać na readBool ta samo jak na write bool
   if (!configExist)
   {
@@ -292,28 +322,14 @@ void setup()
       byte byteAtCurrentStringPosition = (byte)password[i];
       EEPROM.write(passwordAddress + i, byteAtCurrentStringPosition);
     }
-    // Zapisz date i czas
-    Serial.println("Wprowadź date (YY MM DD):");
-    String date = ReadDate(); // zastąp ReadDate() funkcją do odczytu daty
-    for (int i = 0; i < date.length(); i++)
-    {
-      byte byteAtCurrentStringPosition = (byte)date[i];
-      EEPROM.write(dateAddress + i, byteAtCurrentStringPosition);
-    }
-    Serial.println("Wprowadź czas (HH MM SS):");
-    String time = ReadTime();
-    for (int i = 0; i < time.length(); i++)
-    {
-      byte byteAtCurrentStringPosition = (byte)time[i];
-      EEPROM.write(timeAddress + i, byteAtCurrentStringPosition);
-    }
+
     // Zapisz czas na wyjście po zabezpieczeniu
     Serial.println("Wprowadź czas na wyjście po zabezpieczeniu (s):");
-    int exitTime = ReadExitTime();
+    exitTime = ReadNumericInput(0, 255); // w sekundach
     EEPROM.write(exitTimeAddress, exitTime);
     // Zapisz czas podświetlenia ekranu
     Serial.println("Wprowadź czas podświetlenia ekranu (s):");
-    int backlightTime = ReadBacklightTime();
+    int backlightTime = ReadNumericInput(0, 255); // w sekundach
     EEPROM.write(backlightTimeAddress, backlightTime);
 
     // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
@@ -348,6 +364,29 @@ void setup()
       Serial.println("Za dużo prób!");
       // ALARM ???
     }
+    // Jeśli wpisane hasło jest poprawne to podaj date i aktualny czas
+
+    Serial.println("Podaj dzień:");
+    day = ReadNumericInput(1, 31);
+    Serial.println("Podaj miesiąc:");
+    month = ReadNumericInput(1, 12);
+    Serial.println("Podaj rok:");
+    year = ReadNumericInput(0, 99);
+    Serial.println("Podaj godzinę:");
+    hour = ReadNumericInput(0, 23);
+    Serial.println("Podaj minutę:");
+    minutes = ReadNumericInput(0, 59);
+
+    //Stowrzenie nowego taska do odliczanania czasu 
+    xTaskCreatePinnedToCore(
+                            clockTask, /* Task function. */
+                            "TaskClock",   /* name of task. */
+                            10000,     /* Stack size of task */
+                            NULL,      /* parameter of the task */
+                            1,         /* priority of the task */
+                            &clockTaskHandle,    /* Task handle to keep track of created task */
+                            0);        /* pin task to core 0 */
+    
   }
 }
 
@@ -358,6 +397,19 @@ void loop()
   // wyświetlanie aktualnej daty i czasu
   // niżej wyświetlanie menu
   // możliwośc uzbrojenia systemu ...
+  if(currentMenuOption == 0)
+  {
+    Serial.print("Aktualna data i godzina: ");
+    Serial.print(day);
+    Serial.print(".");
+    Serial.print(month);
+    Serial.print(".");
+    Serial.print(year);
+    Serial.print(" ");
+    Serial.print(hour);
+    Serial.print(":");
+    Serial.println(minutes);
+  }
   char key = keypad.getKey();
   switch (key)
   {
