@@ -1,39 +1,9 @@
 // TO DO
-// przy każdorazowym włączeniu podawaj aktualną datę i godzinę
 // rozpocznij nowy wątek z odliczaniem aktualnego czasu
-
-#include <Arduino.h>
-#include <PinsDef.h>
-#include <EEPROM.h>
-#include <Keypad.h>
-
-// 0x001	Password	   1015	Numeric password (max storage)
-// 0x3FE	Exit Time	      2	(Seconds, 16-bit integer)
-// 0x3FC	Backlight Time	2	(Seconds, 16-bit integer)
-
-#define EEPROM_SIZE 1024
-#define configExistAddress 0x00
-#define passwordAddress 0x001
-#define dateAddress 0x3f8
-#define timeAddress 0x3fB
-#define exitTimeAddress 0x3fe
-#define backlightTimeAddress 0x3fc
-
-int currentMenuOption = 0;
-// Menu: (wyświetla się jedna linia)
-// 0:  12.03.25 12:00
-// 1:  Zmiana hasła
-// 2:  Zmiana godziny
-// 3:  Zmiana czasu na wyjście
-//
-int day = 0, month = 0, year = 0, minutes = 0, hour = 0;
-String passwordFromMemory = "";
-Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
-int exitTime = 0; // czas na wyjście po zabezpieczeniu
-int backlightTime = 0; // czas podświetlenia ekranu
-TaskHandle_t clockTaskHandle = NULL;
-TaskHandle_t inputDelayTaskHandle = NULL;
-bool disarmed = false; // zmienna do rozbrojenia systemu
+// zamień wszystki printy na wyświetlanie na ekranie wiadomości
+// poukładać funkcjie w innym pliku / posprzątać 
+// dodać funkcje ALARM()
+// sprawdź czy zapisywanie danych do pamięci flash działa
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //                                 Temat projektu                                           //                                                                              //
@@ -72,14 +42,47 @@ bool disarmed = false; // zmienna do rozbrojenia systemu
 // 4. Uzbrojony           - czujnik krańcowy i ruchu aktywne
 // 5. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
 
+
+#include <Arduino.h>
+#include <PinsDef.h>
+#include <EEPROM.h>
+#include <Keypad.h>
+
+// 0x001	Password	   1015	Numeric password (max storage)
+// 0x3FE	Exit Time	      2	(Seconds, 16-bit integer)
+// 0x3FC	Backlight Time	2	(Seconds, 16-bit integer)
+
+#define EEPROM_SIZE 1024              //Rozmiar jest potrzebny do zainicjowania emulacji pamięci na ESP32
+#define configExistAddress 0x00       
+#define passwordAddress 0x001
+#define exitTimeAddress 0x3fe
+#define backlightTimeAddress 0x3fc
+
+int currentMenuOption = 0;
+// Menu: (wyświetla się jedna linia)
+// 0:  12.03.25 12:00
+// 1:  Zmiana hasła
+// 2:  Zmiana godziny
+// 3:  Zmiana czasu na wyjście
+
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
+String passwordFromMemory = "";
+int day = 0, month = 0, year = 0, minutes = 0, hour = 0;
+int exitTime = 0; // czas na wyjście po zabezpieczeniu
+int backlightTime = 0; // czas podświetlenia ekranu
+TaskHandle_t clockTaskHandle = NULL;
+TaskHandle_t inputDelayTaskHandle = NULL;
+bool disarmed = false; // zmienna do rozbrojenia systemu
+
+
 void enterMenuOption(int option)
 {
   switch (option)
   {
   case 2:
-    // Kod do zmiany daty i godziny
+    // np. zmiana daty i godziny
     break;
-    //...
+    // case 3...
   }
 }
 
@@ -393,7 +396,6 @@ void setup()
 void loop()
 {
   // Stan po włączeniu: Rozbrojony
-  // czy da się w ogóle wyświetlać czas jeśli nie ma multithreadingu?
   // wyświetlanie aktualnej daty i czasu
   // niżej wyświetlanie menu
   // możliwośc uzbrojenia systemu ...
@@ -438,7 +440,6 @@ void loop()
     }
     // Uzbrojenie systemu
     ArmedSystem();
-
     break;
   }
   case '1':
@@ -448,7 +449,6 @@ void loop()
     {
       currentMenuOption--;
     }
-
     break;
   }
   case '9':
