@@ -298,9 +298,19 @@ void setup()
 {
   EEPROM.begin(EEPROM_SIZE);
   Serial.begin(115200);
-  // Używanie wewnętrznej pamięci arduino
-  // https://www.digikey.com/en/maker/blogs/2021/how-to-permanently-store-data-on-an-arduinos-built-in-eeprom
-  // W Esp nie ma EEPROM za to używan się poamięci flash do zapisywania danych, biblioteka jest ta sama ale lekko inne użycie
+
+  // ONLY FOR TESTING PURPOSES
+  // CLEAN MEMORY
+      // for(int i = 0; i < EEPROM_SIZE; i++)
+      // {
+      //   EEPROM.write(i, 0x00);
+      // }
+      // EEPROM.commit(); // faktyczne zapisanie danych do pamięci flash
+  // END TESTING
+
+
+
+
 
   // Sprawdzanie czy istnieje konfiguracja
   // Jeśli tak to podaj hasło
