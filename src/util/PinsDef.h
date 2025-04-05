@@ -21,5 +21,8 @@ char keys[rowNum][colNum] = {
   {'*', '0', '#', 'D'}
 };
 
+// RTC
+ThreeWire myWire(4,5,2); // IO, SCLK, CE
+
 
 

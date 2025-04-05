@@ -27,11 +27,11 @@
 
 #include <util/include.h>
 
-
 void setup()
 {
   lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
   wyswietl("Konfiguracja",0);
+  setupRTC(); // inicjalizacja RTC
   //setupFromEEPROM();  // TODO: DOKOŃCZ tą funkcję aby poprawnie pobierała dane do konfiguracji
   Serial.begin(115200);
 
@@ -48,15 +48,18 @@ void setup()
 
 void loop()
 {
+  RtcDateTime now = Rtc.GetDateTime();
   // Rozbrojony
   if(currentMenuOption == 0)
   {
+    
     // Stan po włączeniu: Rozbrojony
     // wyświetlanie aktualnej daty i czasu
     Serial.print("Aktualna data i godzina: ");
-    Serial.print(day + " . " + month + " . " + year + " . " + hour + " : " + minutes);
-    wyswietl("Rozbrojony", 0)
-    wyswietl(hour + " : " + minutes, 1);
+    Serial.print(dateTime(now));
+
+    wyswietl("Rozbrojony", 0);
+    wyswietl(dateTime(now), 1);
 
   } 
 }

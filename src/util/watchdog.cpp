@@ -1,4 +1,3 @@
-#include <util/include.h>
 // Tryby pracy
 // 1. Niezainicjalizowany - brak konfiguracji.
 // 2. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
