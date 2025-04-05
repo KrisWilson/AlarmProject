@@ -5,7 +5,7 @@
 #define pirSensor   13
 #define hallSensor  10
 #define doorSensor  10
-#define buzzer      1
+#define buzzerpin   1
 #define ledStatus   14
 #define ledWaiting  15
 

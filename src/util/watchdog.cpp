@@ -11,40 +11,50 @@ int armMode = 0;
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
 
+
+// Funkcja która pozwala zmieniać wiele elementów jednocześnie przy zmianie stanu
 void changeMode(int _new){
   switch(_new){
     case ROZBROJONY:
       armMode = ROZBROJONY;
-      light(ledStatus, LOW);
-      light(ledWaiting, LOW);
+      light(ledStatus, LOW);  // Brak uzbrojenia
+      light(ledWaiting, LOW); // Brak oczekiwania
+      play(buzzerpin,0);      // Brak sygnału dźwiękowego
     break;
 
     case UZBROJONY:
       armMode = UZBROJONY;
-      light(ledStatus, HIGH);
-      light(ledWaiting, LOW);
+      light(ledStatus, HIGH); // Uzbrojony
+      light(ledWaiting, LOW); // Nie oczekujący
+      play(buzzerpin,0);      // Silent mode
     break;
 
     case OPUSCLOKAL:
       armMode = OPUSCLOKAL;
-      light(ledStatus, HIGH);
-      light(ledWaiting, LOW);
+      light(ledStatus, HIGH); // Uzbrojony
+      light(ledWaiting, LOW); // Nie oczekujacy na kod
+      play(buzzerpin,2);      // Sygnał bip bip bip w celu informacji ze uzbraja
     break;
 
     case WPISZKOD:
       armMode = WPISZKOD;
-      light(ledStatus, HIGH);
-      light(ledWaiting, HIGH);
+      light(ledStatus, HIGH); // Uzbrojony
+      light(ledWaiting, HIGH);// Czeka na kod
+      play(buzzerpin,0);      // Silent mode, aby nie wiedzieli ze mamy alarm
     break;
 
     case ALARM:
       armMode = ALARM;
-      light(ledStatus, HIGH);
-      light(ledWaiting, HIGH);
+      light(ledStatus, HIGH); // Uzbrojony
+      light(ledWaiting, HIGH);// Czeka na kod
+      play(buzzerpin,1);      // I po ptokach, mamy sygnał dźwiękowy
     break;
 
-    default:
+    default:                  // Technicznie to stan nieokreślony.
       armMode = ZABLOKOWANY;
+      light(ledStatus, HIGH); // Uzbrojony
+      light(ledWaiting, HIGH);// Czeka na kod
+      play(buzzerpin,1);      // I po ptokach, mamy sygnał dźwiękowy
     break;
   }
 }

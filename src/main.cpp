@@ -51,47 +51,53 @@ void setup()
 void loop()
 {
   RtcDateTime now = Rtc.GetDateTime();
-  // Rozbrojony
+  
   switch(armMode){
 
-// 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
-  case ROZBROJONY: // stan Rozbrojony
-    // wyświetlanie aktualnej daty i czasu
-    Serial.print("Aktualna data i godzina: ");
-    Serial.print(dateTime(now));
+  // 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
+    case ROZBROJONY: // stan Rozbrojony
+      // wyświetlanie aktualnej daty i czasu
+      Serial.print("Aktualna data i godzina: ");
+      Serial.print(dateTime(now));
 
-    wyswietl("Rozbrojony", 0);
-    wyswietl(dateTime(now), 1);
-    // TOOD: CHECK INPUT 
-  break;
+      wyswietl("Rozbrojony", 0);
+      wyswietl(dateTime(now), 1);
+      // TOOD: CHECK INPUT 
+    break;
 
-// 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
-//      przykład gdy ktoś przełacza na tryb uzbrojony z rozbrojonego i chce opuścić lokal
-//      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
-  case OPUSCLOKAL: 
-    wyswietl("")
-  break;
+  // 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
+  //      przykład gdy ktoś przełacza na tryb uzbrojony z rozbrojonego i chce opuścić lokal
+  //      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
+    case OPUSCLOKAL: 
+      wyswietl("");
+    break;
 
-// 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
-  case UZBROJONY:
-    if(readPIR(pirSensor))  currentMenuOption = 3; // wykrycie ruchu, bez otwarcia drzwi = instant ban
-    if(readDoor(doorSensor)) currentMenuOption = 1;// Wykrycie otwarcia drzwi = daje czas na wpisanie kodu
-  break;
+  // 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
+    case UZBROJONY:
+      if(readPIR(pirSensor))   changeMode(ALARM);     // wykrycie ruchu, bez otwarcia drzwi = instant ban
+      if(readDoor(doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
+      
+      Serial.print("Aktualna data i godzina: ");
+      Serial.print(dateTime(now));
+
+      wyswietl("Rozbrojony", 0);
+      wyswietl(dateTime(now), 1);
+    break;
 
 
-// 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
-  case ALARM:
-  break;
+  // 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
+    case ALARM:
+    break;
 
 
 
-  default:
-    Serial.print("Something went unexpected wrong >:(");
+    default:
+      Serial.print("Something went unexpected wrong >:(");
 
-    wyswietl("Error: unknown status", 0);
-    wyswietl(dateTime(now), 1);
-    
-  } 
+      wyswietl("Error: unknown status", 0);
+      wyswietl(dateTime(now), 1);
+      
+    } 
 
 
 
