@@ -51,6 +51,7 @@
 // 5. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
 
 
+
 #include <Arduino.h>
 #include <PinsDef.h>
 #include <EEPROM.h>
