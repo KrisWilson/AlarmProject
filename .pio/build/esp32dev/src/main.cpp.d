@@ -1,5 +1,4 @@
-.pio/build/esp32dev/src/main.cpp.o: src/main.cpp src/util/watchdog.cpp \
- src/util/include.h src/util/keys.cpp \
+.pio/build/esp32dev/src/main.cpp.o: src/main.cpp src/util/inc/watchdog.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/freertos/FreeRTOS.h \
@@ -133,22 +132,4 @@
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/spi_flash/include/esp_spi_flash_counters.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
- .pio/libdeps/esp32dev/Keypad/src/Keypad.h \
- .pio/libdeps/esp32dev/Keypad/src/Key.h src/util/PinsDef.h \
- src/util/lcd.cpp \
- .pio/libdeps/esp32dev/LiquidCrystal_I2C/LiquidCrystal_I2C.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Print.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src/Wire.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal.h \
- src/util/misc.cpp \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
- src/util/menu.cpp \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src/EEPROM.h \
- src/util/config.cpp .pio/libdeps/esp32dev/RTC/src/RtcDS1302.h \
- .pio/libdeps/esp32dev/RTC/src/RtcUtility.h \
- .pio/libdeps/esp32dev/RTC/src/RtcDateTime.h \
- .pio/libdeps/esp32dev/RTC/src/RtcTimeZone.h \
- .pio/libdeps/esp32dev/RTC/src/RtcLocaleEnUs.h \
- .pio/libdeps/esp32dev/RTC/src/RtcLocaleEn.h \
- .pio/libdeps/esp32dev/RTC/src/ThreeWire.h
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h

@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <RtcDS1302.h>
-#include <util/PinsDef.h>
+#include "util/inc/PinsDef.h"
 
 
 // W konfiguracji przechowujemy RTC i konfigi zwiazane z RTC// CONNECTIONS:
@@ -19,7 +19,6 @@ RtcDS1302<ThreeWire> Rtc(myWire);
 // Konfiguracyjne zmienne - defaultowe wartości, nim będą przypisane z eepromu
 String password = "12345";
 int exitTime = 15; // czas na wyjście po zabezpieczeniu
-int day = 0, month = 0, year = 0, minutes = 0, hour = 0;
 
 #define EEPROM_SIZE 1024              //Rozmiar jest potrzebny do zainicjowania emulacji pamięci na ESP32
 #define configExistAddress 0x00       
@@ -69,7 +68,7 @@ void setupRTC(){
     }
 }
 
-String dateTime(const RtcDateTime& dt)
+String dateTimeStr(const RtcDateTime& dt)
 {
     char datestring[26];
 
@@ -84,6 +83,14 @@ String dateTime(const RtcDateTime& dt)
             dt.Second() );
         
     return datestring;
+}
+
+String getDate(){
+    return dateTimeStr(Rtc.GetDateTime());
+}
+
+int getExitTime(){
+    return exitTime;
 }
 
 // bool setupFromEEPROM(){

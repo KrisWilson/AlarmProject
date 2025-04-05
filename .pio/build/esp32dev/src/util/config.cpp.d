@@ -140,4 +140,4 @@
  .pio/libdeps/esp32dev/RTC/src/RtcTimeZone.h \
  .pio/libdeps/esp32dev/RTC/src/RtcLocaleEnUs.h \
  .pio/libdeps/esp32dev/RTC/src/RtcLocaleEn.h \
- .pio/libdeps/esp32dev/RTC/src/ThreeWire.h src/util/PinsDef.h
+ .pio/libdeps/esp32dev/RTC/src/ThreeWire.h src/util/inc/PinsDef.h

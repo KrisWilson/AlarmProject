@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Keypad.h>
-#include <util/PinsDef.h>
+#include "util/inc/PinsDef.h"
 
 byte rowPins[rowNum] = {9, 8, 7, 6}; // Connect to the row pinouts of the keypad
 byte colPins[colNum] = {5, 4, 3, 2}; // Connect to the column pinouts of the keypad

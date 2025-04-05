@@ -1,4 +1,4 @@
-#include <util/watchdog.cpp>
+#include "util/inc/watchdog.h"
 void setup()
 {
   watchdogSetup();
@@ -7,7 +7,5 @@ void setup()
 
 void loop()
 {
-  wyswietl("watchdog.exe crashed");
-  RtcDateTime now = Rtc.GetDateTime();
-  wyswietl(dateTime(now), 1);
+  wyswietl("watchdog.exe crashed",0,0);
 }

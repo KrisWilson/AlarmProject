@@ -28,8 +28,10 @@
 
 // Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
 //    Kamera USB 
-
-#include <util/include.h>
+#include <Arduino.h>
+#include <RtcDS1302.h>
+#include "util/inc/PinsDef.h"
+#include "util/inc/include.h"
 bool disarmed = false;  // zmienna do rozbrojenia systemu
 #define ROZBROJONY    0 // chilluje i czeka na uzbrojenie (0 -> 2 -> 1)
 #define UZBROJONY     1 // agresywnie wyszukuje inputów   (1 -> 5 lub 1 -> 3 -> 5)
@@ -111,17 +113,16 @@ void inputDelay(void *pvParameters)
 
 
 void checkState(){
-  RtcDateTime now = Rtc.GetDateTime();
   switch(armMode){
 
   // 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
     case ROZBROJONY: // stan Rozbrojony
       // wyświetlanie aktualnej daty i czasu
       Serial.print("Aktualna data i godzina: ");
-      Serial.print(dateTime(now));
+      Serial.print(getDate());
 
       wyswietl("Rozbrojony", 0);
-      wyswietl(dateTime(now), 1);
+      wyswietl(getDate(), 1);
       // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
     break;
 
@@ -130,7 +131,7 @@ void checkState(){
   //      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
     case OPUSCLOKAL: 
       wyswietl("Uzbrajanie...");
-      sleep(exitTime); // __SECONDS????????
+      sleep(getExitTime()); // __SECONDS????????
       changeMode(UZBROJONY);
     break;
 
@@ -146,10 +147,10 @@ void checkState(){
       if(readDoor(doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
 
       Serial.print("Uzbrojony");
-      Serial.print(dateTime(now));
+      Serial.print(getDate());
 
       wyswietl("Uzbrojony", 0);
-      wyswietl(dateTime(now), 1);
+      wyswietl(getDate(), 1);
     break;
 
 
@@ -163,61 +164,61 @@ void checkState(){
       Serial.print("Something went unexpected wrong >:(");
 
       wyswietl("Error: unknown status", 0);
-      wyswietl(dateTime(now), 1);
+      wyswietl(getDate(), 1);
       
     } 
 }
 
-void ArmedSystem()
-{
-  // Wyświetlenie odliczania zadanego przez użytkownika
-  int i = 0;
-  while (i < exitTime)
-  {
-    Serial.print(i);
-    delay(1000);
-    i++;
-  }
-  // beep beep system uzbrojony
-  if (readPIR(pirSensor)) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
-  {
-    //Start odliczania 30s na wpisanie hasła w innym wątku 
-    xTaskCreatePinnedToCore(
-                          inputDelay, /* Task function. */
-                          "TaskClock",   /* name of task. */
-                          10000,     /* Stack size of task */
-                          NULL,      /* parameter of the task */
-                          1,         /* priority of the task */
-                          &inputDelayTaskHandle,    /* Task handle to keep track of created task */
-                          0);  
+// void ArmedSystem()
+// {
+//   // Wyświetlenie odliczania zadanego przez użytkownika
+//   int i = 0;
+//   while (i < getExitTime())
+//   {
+//     Serial.print(i);
+//     delay(1000);
+//     i++;
+//   }
+//   // beep beep system uzbrojony
+//   if (readPIR(pirSensor)) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
+//   {
+//     //Start odliczania 30s na wpisanie hasła w innym wątku 
+//     xTaskCreatePinnedToCore(
+//                           inputDelay, /* Task function. */
+//                           "TaskClock",   /* name of task. */
+//                           10000,     /* Stack size of task */
+//                           NULL,      /* parameter of the task */
+//                           1,         /* priority of the task */
+//                           &inputDelayTaskHandle,    /* Task handle to keep track of created task */
+//                           0);  
                           
-    int passwordAttempts = 0;
-  passwordInput:
-    Serial.println("Podaj hasło: ");
-    String password = ReadPassword();
-    if (password != passwordFromMemory && passwordAttempts < 3)
-    {
-      Serial.println("Hasło jest niepoprawne!");
-      passwordAttempts++;
-      goto passwordInput;
-    }
-    else if (password != passwordFromMemory && passwordAttempts >= 3)
-    {
-      Serial.println("Podano 3 błędne hasła! Uruchominie alarmu");
-      // ALARM!!!!!!!!!!!!!!!!!!!!!!! WOŁAJTA POLICJE ZŁODZIEJE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    }
-    else
-    {
-      disarmed = true;
-      Serial.println("System rozbrojony!");
-      // wyłączenie alarmu
-      // wyłączenie kamery
-      // wyłączenie syreny
-      // wyłączenie diod
-      vTaskDelete(inputDelayTaskHandle); // usunięcie taska odliczania czasu na wpisanie hasła
-    }
-  }
-}
+//     int passwordAttempts = 0;
+//   passwordInput:
+//     Serial.println("Podaj hasło: ");
+//     String password = ReadPassword();
+//     if (password != passwordFromMemory && passwordAttempts < 3)
+//     {
+//       Serial.println("Hasło jest niepoprawne!");
+//       passwordAttempts++;
+//       goto passwordInput;
+//     }
+//     else if (password != passwordFromMemory && passwordAttempts >= 3)
+//     {
+//       Serial.println("Podano 3 błędne hasła! Uruchominie alarmu");
+//       // ALARM!!!!!!!!!!!!!!!!!!!!!!! WOŁAJTA POLICJE ZŁODZIEJE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//     }
+//     else
+//     {
+//       disarmed = true;
+//       Serial.println("System rozbrojony!");
+//       // wyłączenie alarmu
+//       // wyłączenie kamery
+//       // wyłączenie syreny
+//       // wyłączenie diod
+//       vTaskDelete(inputDelayTaskHandle); // usunięcie taska odliczania czasu na wpisanie hasła
+//     }
+//   }
+// }
 
 
 
@@ -226,11 +227,10 @@ void watchdogSetup(){
   wyswietl("Konfiguracja");
 
   setupRTC(); // inicjalizacja RTC
-  RtcDateTime now = Rtc.GetDateTime();
-  wyswietl(dateTime(now), 1);
+  wyswietl(getDate(), 1);
 
   Serial.begin(115200);
-  Serial.print("Aktualna data i godzina: " + dateTime(now) + "\n");
+  Serial.print("Aktualna data i godzina: " + getDate() + "\n");
 }
 bool watchdog(){
   bool watchdogAlive = true;
