@@ -21,6 +21,16 @@
 
 
 
+int currentMenuOption = 0;
+// Menu: (wyświetla się jedna linia)
+// 0:  12.03.25 12:00
+// 1:  Zmiana hasła
+// 2:  Zmiana godziny
+// 3:  Zmiana czasu na wyjście
+
+
+
+
 void enterMenuOption(int option)
 {
   switch (option)
@@ -62,10 +72,3 @@ void ShowMenuOption(int option)
     break;
   }
 }
-
-int currentMenuOption = 0;
-// Menu: (wyświetla się jedna linia)
-// 0:  12.03.25 12:00
-// 1:  Zmiana hasła
-// 2:  Zmiana godziny
-// 3:  Zmiana czasu na wyjście

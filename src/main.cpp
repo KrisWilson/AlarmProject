@@ -20,6 +20,7 @@
 //    Czujnik krańcowy -- misc.cpp  -- bool readDoor(pin)
 //    Syrena           -- misc.cpp  -- void play(pin, song)
 //    Ledy             -- misc.cpp  -- void light()
+//    HARD RTC (External) DS1302
 
 // Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
 //    Kamera USB       
@@ -30,97 +31,32 @@
 void setup()
 {
   lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
-  wyswietl("Konfiguracja",0)
+  wyswietl("Konfiguracja",0);
+  //setupFromEEPROM();  // TODO: DOKOŃCZ tą funkcję aby poprawnie pobierała dane do konfiguracji
   Serial.begin(115200);
 
-    //Stowrzenie nowego taska do odliczanania czasu 
-    xTaskCreatePinnedToCore(
-                            clockTask, /* Task function. */
-                            "TaskClock",   /* name of task. */
-                            10000,     /* Stack size of task */
-                            NULL,      /* parameter of the task */
-                            1,         /* priority of the task */
-                            &clockTaskHandle,    /* Task handle to keep track of created task */
-                            0);        /* pin task to core 0 */
-    
-  
+  //  Stowrzenie nowego taska do odliczanania czasu 
+  //  xTaskCreatePinnedToCore(
+  //                         clockTask, /* Task function. */
+  //                         "TaskClock",   /* name of task. */
+  //                         10000,     /* Stack size of task */
+  //                         NULL,      /* parameter of the task */
+  //                         1,         /* priority of the task */
+  //                         &clockTaskHandle,    /* Task handle to keep track of created task */
+  //                         0);        /* pin task to core 0 */ 
 }
 
 void loop()
 {
-  // Stan po włączeniu: Rozbrojony
-  // wyświetlanie aktualnej daty i czasu
-  // niżej wyświetlanie menu
-  // możliwośc uzbrojenia systemu ...
+  // Rozbrojony
   if(currentMenuOption == 0)
   {
+    // Stan po włączeniu: Rozbrojony
+    // wyświetlanie aktualnej daty i czasu
     Serial.print("Aktualna data i godzina: ");
-    Serial.print(day);
-    Serial.print(".");
-    Serial.print(month);
-    Serial.print(".");
-    Serial.print(year);
-    Serial.print(" ");
-    Serial.print(hour);
-    Serial.print(":");
-    Serial.println(minutes);
-  }
-  char key = keypad.getKey();
-  switch (key)
-  {
-  case '#': // wprowadzenie hasła i uzbrojenie systemu
-  {
-    int passwordAttempts = 0;
-    bool correctPasswordInput = false;
-    while (!correctPasswordInput)
-    {
-      Serial.println("Podaj hasło: ");
-      String password = ReadPassword();
-      if (password != passwordFromMemory && passwordAttempts < 3)
-      {
-        Serial.println("Hasło jest niepoprawne!");
-        passwordAttempts++;
-      }
-      else if (password != passwordFromMemory && passwordAttempts >= 3)
-      {
-        Serial.println("Za dużo prób!");
-        // ALARM ???
-      }
-      else
-      {
-        correctPasswordInput = true;
-      }
-    }
-    // Uzbrojenie systemu
-    ArmedSystem();
-    break;
-  }
-  case '1':
-  {
-    // przejście wyżej w menu
-    if (currentMenuOption > 0)
-    {
-      currentMenuOption--;
-    }
-    break;
-  }
-  case '9':
-  {
-    // przejście niżej w menu
-    if (currentMenuOption < 6)
-    {
-      currentMenuOption++;
-    }
-    break;
-  }
-  case '6':
-  {
-    // wejście do opcji w menu
-    enterMenuOption(currentMenuOption);
-    break;
-  }
-  default:
+    Serial.print(day + " . " + month + " . " + year + " . " + hour + " : " + minutes);
+    wyswietl("Rozbrojony", 0)
+    wyswietl(hour + " : " + minutes, 1);
 
-    break;
-  }
+  } 
 }
