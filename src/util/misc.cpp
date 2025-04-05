@@ -64,5 +64,5 @@ void play(
 
 //  ta funkcja zależnie od stanu uzbrojenia przyjmuje różne wartości wewnątrz
 void light(int pin=0, bool active=true){
-    digitalWrite(pin, 255)
+    digitalWrite(pin, 255);
 }

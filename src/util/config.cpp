@@ -1,8 +1,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <RtcDS1302.h>
-#include <util/keys.cpp>
-#include <RtcDS1302.h>
+#include <util/PinsDef.h>
 
 
 // W konfiguracji przechowujemy RTC i konfigi zwiazane z RTC// CONNECTIONS:
@@ -11,6 +10,9 @@
 // DS1302 RST/CE --> 2
 // DS1302 VCC --> 3.3v - 5v
 // DS1302 GND --> GND
+// RTC
+
+ThreeWire myWire(4,5,2); // IO, SCLK, CE  // TODO: Sprawdź poprawne piny i dopasuj jak należy to
 RtcDS1302<ThreeWire> Rtc(myWire);
 
 
@@ -84,95 +86,94 @@ String dateTime(const RtcDateTime& dt)
     return datestring;
 }
 
+// bool setupFromEEPROM(){
+//     // ONLY FOR TESTING PURPOSES
+//     // CLEAN MEMORY
+//     // for(int i = 0; i < EEPROM_SIZE; i++)
+//     // {
+//     //   EEPROM.write(i, 0x00);
+//     // }
+//     // EEPROM.commit(); // faktyczne zapisanie danych do pamięci flash
+//     // END TESTING
 
-bool setupFromEEPROM(){
-    // ONLY FOR TESTING PURPOSES
-    // CLEAN MEMORY
-    // for(int i = 0; i < EEPROM_SIZE; i++)
-    // {
-    //   EEPROM.write(i, 0x00);
-    // }
-    // EEPROM.commit(); // faktyczne zapisanie danych do pamięci flash
-    // END TESTING
-
-    // Sprawdzanie czy istnieje konfiguracja
-    // Jeśli tak to podaj hasło
-    // Jeśli nie to stwórz
-    bool configExist = (bool)EEPROM.read(configExistAddress); // to trzeba pozmieniać na readBool ta samo jak na write bool
-    if (!configExist)
-    {
-        // Wypisanie tekstu powitalnego
-        Serial.println("Witaj w systemie alarmowym HOMESEC XD");
-        Serial.println("Konfiguracja systemu...");
-        passwordSection:
-        // Wprowadź hasło do systemu max długość 1015 znaków
-        String password = ReadPassword(); // zastąp ReadPassword() funkcją do odczytu hasła
-        if (password.length() > 1015)
-        {
-            Serial.println("Hasło jest za długie!");
-            goto passwordSection;
-        }
+//     // Sprawdzanie czy istnieje konfiguracja
+//     // Jeśli tak to podaj hasło
+//     // Jeśli nie to stwórz
+//     bool configExist = (bool)EEPROM.read(configExistAddress); // to trzeba pozmieniać na readBool ta samo jak na write bool
+//     if (!configExist)
+//     {
+//         // Wypisanie tekstu powitalnego
+//         Serial.println("Witaj w systemie alarmowym HOMESEC XD");
+//         Serial.println("Konfiguracja systemu...");
+//         passwordSection:
+//         // Wprowadź hasło do systemu max długość 1015 znaków
+//         String password = ReadPassword(); // zastąp ReadPassword() funkcją do odczytu hasła
+//         if (password.length() > 1015)
+//         {
+//             Serial.println("Hasło jest za długie!");
+//             goto passwordSection;
+//         }
         
-        passwordFromMemory = password;
-        for (int i = 0; i < password.length(); i++)
-        {
-            byte byteAtCurrentStringPosition = (byte)password[i];
-            EEPROM.write(passwordAddress + i, byteAtCurrentStringPosition);
-        }
+//         passwordFromMemory = password;
+//         for (int i = 0; i < password.length(); i++)
+//         {
+//             byte byteAtCurrentStringPosition = (byte)password[i];
+//             EEPROM.write(passwordAddress + i, byteAtCurrentStringPosition);
+//         }
 
-        // Zapisz czas na wyjście po zabezpieczeniu
-        Serial.println("Wprowadź czas na wyjście po zabezpieczeniu (s):");
-        exitTime = ReadNumericInput(0, 255); // w sekundach
-        EEPROM.write(exitTimeAddress, exitTime);
-        // Zapisz czas podświetlenia ekranu
-        Serial.println("Wprowadź czas podświetlenia ekranu (s):");
-        int backlightTime = ReadNumericInput(0, 255); // w sekundach
-        EEPROM.write(backlightTimeAddress, backlightTime);
+//         // Zapisz czas na wyjście po zabezpieczeniu
+//         Serial.println("Wprowadź czas na wyjście po zabezpieczeniu (s):");
+//         exitTime = ReadNumericInput(0, 255); // w sekundach
+//         EEPROM.write(exitTimeAddress, exitTime);
+//         // Zapisz czas podświetlenia ekranu
+//         Serial.println("Wprowadź czas podświetlenia ekranu (s):");
+//         int backlightTime = ReadNumericInput(0, 255); // w sekundach
+//         EEPROM.write(backlightTimeAddress, backlightTime);
 
-        // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
-        EEPROM.write(configExistAddress, 0x01); // sprawdź czy to działa
+//         // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
+//         EEPROM.write(configExistAddress, 0x01); // sprawdź czy to działa
 
-        EEPROM.commit(); // faktyczne zapisanie danych do pamięci flash
-    }
-    else
-    {
-        // Sprawdź czy hasło jest poprawne
-        // Odczytaj hasło z pamięci
-        for (int i = 0; i < 1015; i++)
-        {
-            byte byteAtCurrentStringPosition = EEPROM.read(passwordAddress + i);
-            if (byteAtCurrentStringPosition == 0)
-            break; // koniec hasła
-            passwordFromMemory += (char)byteAtCurrentStringPosition;
-        }
-        // Wpisanie hasła i porównanie z hasłem z pamięci
-        int passwordAttempts = 0;
-        passwordInput:
-        Serial.println("Podaj hasło: ");
-        String password = ReadPassword();
-        if (password != passwordFromMemory && passwordAttempts < 3)
-        {
-            Serial.println("Hasło jest niepoprawne!");
-            passwordAttempts++;
-            goto passwordInput;
-            }
-        else if (password != passwordFromMemory && passwordAttempts >= 3)
-        {
-            Serial.println("Za dużo prób!");
-            // ALARM ???
-        }
-        // Jeśli wpisane hasło jest poprawne to podaj date i aktualny czas
+//         EEPROM.commit(); // faktyczne zapisanie danych do pamięci flash
+//     }
+//     else
+//     {
+//         // Sprawdź czy hasło jest poprawne
+//         // Odczytaj hasło z pamięci
+//         for (int i = 0; i < 1015; i++)
+//         {
+//             byte byteAtCurrentStringPosition = EEPROM.read(passwordAddress + i);
+//             if (byteAtCurrentStringPosition == 0)
+//             break; // koniec hasła
+//             passwordFromMemory += (char)byteAtCurrentStringPosition;
+//         }
+//         // Wpisanie hasła i porównanie z hasłem z pamięci
+//         int passwordAttempts = 0;
+//         passwordInput:
+//         Serial.println("Podaj hasło: ");
+//         String password = ReadPassword();
+//         if (password != passwordFromMemory && passwordAttempts < 3)
+//         {
+//             Serial.println("Hasło jest niepoprawne!");
+//             passwordAttempts++;
+//             goto passwordInput;
+//             }
+//         else if (password != passwordFromMemory && passwordAttempts >= 3)
+//         {
+//             Serial.println("Za dużo prób!");
+//             // ALARM ???
+//         }
+//         // Jeśli wpisane hasło jest poprawne to podaj date i aktualny czas
 
-        Serial.println("Podaj dzień:");
-        day = ReadNumericInput(1, 31);
-        Serial.println("Podaj miesiąc:");
-        month = ReadNumericInput(1, 12);
-        Serial.println("Podaj rok:");
-        year = ReadNumericInput(0, 99);
-        Serial.println("Podaj godzinę:");
-        hour = ReadNumericInput(0, 23);
-        Serial.println("Podaj minutę:");
-        minutes = ReadNumericInput(0, 59);
-        }
-    return false;
-}
+//         Serial.println("Podaj dzień:");
+//         day = ReadNumericInput(1, 31);
+//         Serial.println("Podaj miesiąc:");
+//         month = ReadNumericInput(1, 12);
+//         Serial.println("Podaj rok:");
+//         year = ReadNumericInput(0, 99);
+//         Serial.println("Podaj godzinę:");
+//         hour = ReadNumericInput(0, 23);
+//         Serial.println("Podaj minutę:");
+//         minutes = ReadNumericInput(0, 59);
+//         }
+//     return false;
+// }

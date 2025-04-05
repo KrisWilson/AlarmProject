@@ -2,7 +2,14 @@
 #include <Keypad.h>
 #include <util/PinsDef.h>
 
-
+byte rowPins[rowNum] = {9, 8, 7, 6}; // Connect to the row pinouts of the keypad
+byte colPins[colNum] = {5, 4, 3, 2}; // Connect to the column pinouts of the keypad
+char keys[rowNum][colNum] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 String passwordFromMemory = "";
 

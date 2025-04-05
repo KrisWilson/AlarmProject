@@ -1,4 +1,35 @@
-#include <util/misc.cpp>
+// TO DO
+// rozpocznij nowy wątek z odliczaniem aktualnego czasu
+// zamień wszystki printy na wyświetlanie na ekranie wiadomości
+// poukładać funkcjie w innym pliku / posprzątać 
+// dodać funkcje ALARM()
+// sprawdź czy zapisywanie danych do pamięci flash działa
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//                                 Temat projektu                                           //                                                                              //
+// System ochrony (alarm) dla domu lub firmy                                                //
+// Wykorzystanie czujnika ruchu oraz łącznika (np. drzwiowego) do uaktywnienia sygnału      //
+// dźwiękowego, optycznego oraz dodatkowego łącznika (do załączenia kamery). Zasilanie 5V.  //
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+//      Lista elementów:
+// ESP32 DEVKIT        -- main.cpp
+//    Klawiatura       -- keys.cpp
+//    LCD HD44780 16x2 --  lcd.cpp
+//    Czujnik pir      -- misc.cpp  -- bool readPIR(pin)
+//    Czujnik krańcowy -- misc.cpp  -- bool readDoor(pin)
+//    Syrena           -- misc.cpp  -- void play(pin, song)
+//    Ledy             -- misc.cpp  -- void light()
+//    HARD RTC (External) config.cpp-- void setupRTC(), zmienna Rtc
+//    RFID czytnik     -- misc.cpp  -- void checkRFID()
+//    Na sygnał świetlny widocznie wypada mieć jakiś określony sposób....?
+// Main logic ->  watchdog.cpp
+
+
+// Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
+//    Kamera USB 
+
+#include <util/include.h>
 bool disarmed = false;  // zmienna do rozbrojenia systemu
 #define ROZBROJONY    0 // chilluje i czeka na uzbrojenie (0 -> 2 -> 1)
 #define UZBROJONY     1 // agresywnie wyszukuje inputów   (1 -> 5 lub 1 -> 3 -> 5)
@@ -10,14 +41,6 @@ int armMode = ROZBROJONY;// aktualny status watchdog'a
 
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
-
-
-bool watchdog(){
-  bool watchdogAlive = true;
-  while (watchdogAlive){
-    checkState();
-  }
-}
 
 // Funkcja która pozwala zmieniać wiele elementów jednocześnie przy zmianie stanu
 void changeMode(int _new){
@@ -99,7 +122,7 @@ void checkState(){
 
       wyswietl("Rozbrojony", 0);
       wyswietl(dateTime(now), 1);
-      // TOOD: CHECK INPUT 
+      // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
     break;
 
   // 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
@@ -107,6 +130,14 @@ void checkState(){
   //      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
     case OPUSCLOKAL: 
       wyswietl("Uzbrajanie...");
+      sleep(exitTime); // __SECONDS????????
+      changeMode(UZBROJONY);
+    break;
+
+    case WPISZKOD:
+      wyswietl("Uga buga...");
+      // TODO: WPISZ PASSWORD lub RFID w celu dezaktywowania alarmu
+      changeMode(ALARM);
     break;
 
   // 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
@@ -148,7 +179,7 @@ void ArmedSystem()
     i++;
   }
   // beep beep system uzbrojony
-  if (readPIR()) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
+  if (readPIR(pirSensor)) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
   {
     //Start odliczania 30s na wpisanie hasła w innym wątku 
     xTaskCreatePinnedToCore(
@@ -188,3 +219,23 @@ void ArmedSystem()
   }
 }
 
+
+
+void watchdogSetup(){
+  lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
+  wyswietl("Konfiguracja");
+
+  setupRTC(); // inicjalizacja RTC
+  RtcDateTime now = Rtc.GetDateTime();
+  wyswietl(dateTime(now), 1);
+
+  Serial.begin(115200);
+  Serial.print("Aktualna data i godzina: " + dateTime(now) + "\n");
+}
+bool watchdog(){
+  bool watchdogAlive = true;
+  while (watchdogAlive){
+    checkState();
+  }
+  return false;
+}

@@ -19,8 +19,8 @@ void wyswietl(
       else if (mode == 2)
         lcd.setCursor(16-_txt.length(),pos);
       
-        for(int i=0;i<_txt.length())
-          lcd.write(_txt[i])
+        for(int i=0;i<_txt.length();i++)
+          lcd.write(_txt[i]);
 }
 
 void lcdSetup(){

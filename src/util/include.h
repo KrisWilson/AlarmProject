@@ -3,9 +3,8 @@
 #include <util/lcd.cpp>
 #include <util/misc.cpp>
 #include <util/menu.cpp>      // tworzenie, wyświetlanie i obsługa menu (LCD+keys)
-#include <util/watchdog.cpp>  // clocks, timery, cały system uzbrojenia i analizowania
-#include <util/PinsDef.h>
 #include <util/config.cpp>
+#include <util/PinsDef.h>
 
 // systemowe biblioteki
 #include <Arduino.h>
