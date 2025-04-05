@@ -45,6 +45,8 @@ bool readDoor(
 }
 
 
+//TODO: Dodaj funkcję na RFID oraz sygnał alarmowy-świetlny
+
 //  w sumie to nie widzi mi się aby modularnie nadawać syrenę, dajmy po prostu głośny pisk
 //  jeżeli uda się to w asynchroniczny sposób zrobić to dajmy tutaj syrenę aby w tle sobie migotała
 void play(

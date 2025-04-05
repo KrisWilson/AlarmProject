@@ -27,3 +27,5 @@ void lcdSetup(){
   lcd.init();  
   lcd.backlight();
 }
+
+//TODO: dodaj funkcje zarządzającą backlight (toggle/set)

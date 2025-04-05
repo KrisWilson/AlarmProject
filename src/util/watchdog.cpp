@@ -124,6 +124,7 @@ void checkState(){
       wyswietl("Rozbrojony", 0);
       wyswietl(getDate(), 1);
       // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
+      // TODO: Utwórz opcje wchodzenia w menu i konfiguracje ustawień
     break;
 
   // 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
@@ -156,6 +157,7 @@ void checkState(){
 
   // 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
     case ALARM:
+      // TODO: w sumie to oczekuj na input dezaktywacji alarmu
     break;
 
 
@@ -225,7 +227,7 @@ void checkState(){
 void watchdogSetup(){
   lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
   wyswietl("Konfiguracja");
-
+  // TODO: SETUP from EEPROM  
   setupRTC(); // inicjalizacja RTC
   wyswietl(getDate(), 1);
 

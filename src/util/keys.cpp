@@ -13,6 +13,9 @@ char keys[rowNum][colNum] = {
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 String passwordFromMemory = "";
 
+
+// TODO: Ogarnąć cały ten plik
+// TODO: funkcja readKey() i readLine() dla LCD
 String ReadPassword()
 {
   return passwordFromMemory; // TODO: USUŃ TĄ LINIJKĘ

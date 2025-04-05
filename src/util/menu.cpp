@@ -28,6 +28,7 @@ int currentMenuOption = 0;
 // 2:  Zmiana godziny
 // 3:  Zmiana czasu na wyjście
 
+// TOOD: zrobić porządek z całym tym plikiem, tzn. stworzyć w ogóle opcję wejścia w menu i konfigurowania czegokolwiek
 
 void enterMenuOption(int option)
 {

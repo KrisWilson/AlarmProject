@@ -93,6 +93,9 @@ int getExitTime(){
     return exitTime;
 }
 
+
+// TODO: SETUP from EEPROM
+// TODO: setEEPROM()
 // bool setupFromEEPROM(){
 //     // ONLY FOR TESTING PURPOSES
 //     // CLEAN MEMORY
