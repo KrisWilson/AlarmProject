@@ -12,15 +12,23 @@
 // dźwiękowego, optycznego oraz dodatkowego łącznika (do załączenia kamery). Zasilanie 5V.  //
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-// Lista elementów
-// Arduino / esp32 - kontroler całego systemu, wyświetla menu, odbiera sygnały z czujników
-// Klawiatura
-// Czujnik pir
-// Czujnik krańcowy
-// Syrena
-// Ledy
+//      Lista elementów:
+// ESP32 DEVKIT        -- main.cpp
+//    Klawiatura       -- keys.cpp
+//    LCD HD44780 16x2 --  lcd.cpp
+//    Czujnik pir      -- misc.cpp  -- bool readPIR(pin)
+//    Czujnik krańcowy -- misc.cpp  -- bool readDoor(pin)
+//    Syrena           -- misc.cpp  -- void play(pin, song)
+//    Ledy             -- misc.cpp  -- void light()
+
 // Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
-// Kamera USB
+//    Kamera USB       
+
+
+
+
+
+
 
 // 1. Wyświetl tekst powitalny
 // 2. Jeśli konfiguracja (nie)istanieje to
@@ -46,7 +54,17 @@
 #include <Arduino.h>
 #include <PinsDef.h>
 #include <EEPROM.h>
+
+// dodatkowe oposażenie
 #include <Keypad.h>
+#include <LiquidCrystal_I2C.h>
+
+// patrz notatke na samej górze:
+#include <keys.cpp>
+#include <lcd.cpp>
+#include <misc.cpp>
+#include <menu.cpp>
+
 
 // 0x001	Password	   1015	Numeric password (max storage)
 // 0x3FE	Exit Time	      2	(Seconds, 16-bit integer)
@@ -58,6 +76,7 @@
 #define exitTimeAddress 0x3fe
 #define backlightTimeAddress 0x3fc
 
+
 int currentMenuOption = 0;
 // Menu: (wyświetla się jedna linia)
 // 0:  12.03.25 12:00
@@ -65,8 +84,6 @@ int currentMenuOption = 0;
 // 2:  Zmiana godziny
 // 3:  Zmiana czasu na wyjście
 
-Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
-String passwordFromMemory = "";
 int day = 0, month = 0, year = 0, minutes = 0, hour = 0;
 int exitTime = 0; // czas na wyjście po zabezpieczeniu
 int backlightTime = 0; // czas podświetlenia ekranu
@@ -75,81 +92,6 @@ TaskHandle_t inputDelayTaskHandle = NULL;
 bool disarmed = false; // zmienna do rozbrojenia systemu
 
 
-void enterMenuOption(int option)
-{
-  switch (option)
-  {
-  case 2:
-    // np. zmiana daty i godziny
-    break;
-    // case 3...
-  }
-}
-
-void ShowMenuOption(int option)
-{
-  switch (option)
-  {
-  case 0:
-    // wyświetlenie daty i godziny
-    Serial.println("Data i godzina: ");
-    break;
-  case 1:
-    // zmiana hasła
-    Serial.println("Zmiana hasła: ");
-    break;
-  case 2:
-    // zmiana daty i godziny
-    Serial.println("Zmiana daty i godziny: ");
-    break;
-  case 3:
-    // zmiana czasu na wyjście
-    Serial.println("Zmiana czasu na wyjście: ");
-    break;
-  case 4:
-    // zmiana czasu podświetlenia ekranu
-    Serial.println("Zmiana czasu podświetlenia ekranu: ");
-    break;
-  default:
-    // wyświetlenie daty i godziny
-    Serial.println("Data i godzina: ");
-    break;
-  }
-}
-
-String ReadPassword()
-{
-  String password = "";
-  char key = keypad.getKey();
-  while (key != '#')
-  {
-    if (key != NO_KEY)
-    {
-      password += key;
-      Serial.print(key);
-    }
-    key = keypad.getKey();
-  }
-  Serial.println();
-  return password;
-}
-
-bool DetectMovement()
-{
-  while (true)
-  {
-    // Czujnik ruchu
-    if (digitalRead(pirSensor) == HIGH)
-    {
-      return true;
-    }
-    // Czujnik krańcowy
-    if (digitalRead(doorSensor) == HIGH)
-    {
-      return true;
-    }
-  }
-}
 void inputDelay(void *pvParameters)
 {
   int i = 0;
@@ -180,7 +122,7 @@ void ArmedSystem()
     i++;
   }
   // beep beep system uzbrojony
-  if (DetectMovement()) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
+  if (readPIR()) // wadą tego rozwiązania jest to, że jak nie wykryje ruchu to nie można rozbroić systemu
   {
     //Start odliczania 30s na wpisanie hasła w innym wątku 
     xTaskCreatePinnedToCore(
@@ -218,38 +160,6 @@ void ArmedSystem()
       vTaskDelete(inputDelayTaskHandle); // usunięcie taska odliczania czasu na wpisanie hasła
     }
   }
-}
-
-// create function to read numeric input that will end input with '#' key and in paramaters have min and max value
-int ReadNumericInput(int min, int max) // AI
-{
-  int value = 0;
-  Serial.print("Enter a number between ");
-  Serial.print(min);
-  Serial.print(" and ");
-  Serial.print(max);
-  Serial.println(":");
-  while (true)
-  {
-    char key = keypad.getKey();
-    if (key != NO_KEY)
-    {
-      if (key >= '0' && key <= '9') // Only accept numeric input
-      {
-        value = value * 10 + (key - '0');
-        Serial.print(key);
-      }
-      else if (key == '#') // Confirm input with '#'
-      {
-        Serial.println();
-        if (value >= min && value <= max)
-          break;
-        else
-          Serial.println("Invalid input, try again.");
-      }
-    }
-  }
-  return value;
 }
 
 void clockTask(void *pvParameters)
@@ -296,6 +206,8 @@ void clockTask(void *pvParameters)
 
 void setup()
 {
+  lcd.init();                      // initialize the lcd 
+  lcd.backlight();
   EEPROM.begin(EEPROM_SIZE);
   Serial.begin(115200);
 
