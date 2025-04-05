@@ -1,4 +1,3 @@
-#include <util/include.h>
 #include <EEPROM.h>
 
 // 1. Wyświetl tekst powitalny
@@ -20,11 +19,7 @@
 // 0x3FE	Exit Time	      2	(Seconds, 16-bit integer)
 // 0x3FC	Backlight Time	2	(Seconds, 16-bit integer)
 
-#define EEPROM_SIZE 1024              //Rozmiar jest potrzebny do zainicjowania emulacji pamięci na ESP32
-#define configExistAddress 0x00       
-#define passwordAddress 0x001
-#define exitTimeAddress 0x3fe
-#define backlightTimeAddress 0x3fc
+
 
 void enterMenuOption(int option)
 {

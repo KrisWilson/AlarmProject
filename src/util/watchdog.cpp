@@ -7,9 +7,7 @@
 // 5. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
 
 bool disarmed = false; // zmienna do rozbrojenia systemu
-int day = 0, month = 0, year = 0, minutes = 0, hour = 0;
 
-int exitTime = 0; // czas na wyjście po zabezpieczeniu
 
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;

@@ -27,8 +27,8 @@ bool readPIR(
     // PIR - poziom HIGH na pinie oznacza wykryty ruch, LOW oznacza brak ruchu.
     // System PIR załącza się w 20 sekund, więc potencjalnie istnieje zagrożenie złego odczytu przy boot-upie.
 
-    //return digitalRead(pin);  // tymczasowe rozwiązanie
-    return _in;                 // tymczasowe rozwiązanie
+    return digitalRead(pin);  // tymczasowe rozwiązanie
+    //return _in;                 // tymczasowe rozwiązanie
 }
 
 
@@ -40,8 +40,8 @@ bool readDoor(
     // jeszcze lepszą opcją byłoby wywołać przerwanie i wysłać sygnał otwarcia drzwi, aby nie było sytuacji że
     // otwarcie drzwi w idealnej sekundzie moze spowodować uniknięcie sygnału. - jednakże to nie realne, otwarcie i zamknięcie w mniej niż 0.1s    
     
-    //return digitalRead(pin);                 // tymczasowe rozwiązanie
-    return _in;
+    return digitalRead(pin);                 // tymczasowe rozwiązanie
+    //return _in;
 }
 
 
@@ -64,5 +64,5 @@ void play(
 
 //  ta funkcja zależnie od stanu uzbrojenia przyjmuje różne wartości wewnątrz
 void light(int pin=0, bool active=true){
-
+    digitalWrite(pin, 255)
 }
