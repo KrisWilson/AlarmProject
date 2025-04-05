@@ -1,17 +1,53 @@
-// Tryby pracy
-// 1. Niezainicjalizowany - brak konfiguracji.
-// 2. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
-// 3. Wstępnie uzbrojony  - czujki nieaktywne, odliczanie zadanego czasu do uzbrojenia, możliwość wpisania hasła aby rozbroić?
-// 4. Uzbrojony           - czujnik krańcowy i ruchu aktywne
-// 5. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
-
+#include <util/misc.cpp>
 bool disarmed = false; // zmienna do rozbrojenia systemu
-
+#define ROZBROJONY    0 // chilluje i czeka na uzbrojenie (0 -> 2 -> 1)
+#define UZBROJONY     1 // agresywnie wyszukuje inputów   (1 -> 5 lub 1 -> 3 -> 5)
+#define OPUSCLOKAL    2 // Czas na opuszczenie lokalu     (2 -> 1 lub 2 -> 5)
+#define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
+#define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
+#define ALARM         10// Alarm sygnalizuje katastrofę   (5 -> 0) 
+int armMode = 0;
 
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
 
+void changeMode(int _new){
+  switch(_new){
+    case ROZBROJONY:
+      armMode = ROZBROJONY;
+      light(ledStatus, LOW);
+      light(ledWaiting, LOW);
+    break;
 
+    case UZBROJONY:
+      armMode = UZBROJONY;
+      light(ledStatus, HIGH);
+      light(ledWaiting, LOW);
+    break;
+
+    case OPUSCLOKAL:
+      armMode = OPUSCLOKAL;
+      light(ledStatus, HIGH);
+      light(ledWaiting, LOW);
+    break;
+
+    case WPISZKOD:
+      armMode = WPISZKOD;
+      light(ledStatus, HIGH);
+      light(ledWaiting, HIGH);
+    break;
+
+    case ALARM:
+      armMode = ALARM;
+      light(ledStatus, HIGH);
+      light(ledWaiting, HIGH);
+    break;
+
+    default:
+      armMode = ZABLOKOWANY;
+    break;
+  }
+}
 
 
 void inputDelay(void *pvParameters)

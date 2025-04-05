@@ -29,8 +29,6 @@ int currentMenuOption = 0;
 // 3:  Zmiana czasu na wyjście
 
 
-
-
 void enterMenuOption(int option)
 {
   switch (option)

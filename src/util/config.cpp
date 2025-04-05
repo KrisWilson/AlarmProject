@@ -2,6 +2,8 @@
 #include <EEPROM.h>
 #include <RtcDS1302.h>
 #include <util/keys.cpp>
+#include <RtcDS1302.h>
+
 
 // W konfiguracji przechowujemy RTC i konfigi zwiazane z RTC// CONNECTIONS:
 // DS1302 CLK/SCLK --> 5
@@ -9,9 +11,8 @@
 // DS1302 RST/CE --> 2
 // DS1302 VCC --> 3.3v - 5v
 // DS1302 GND --> GND
-
-#include <RtcDS1302.h>
 RtcDS1302<ThreeWire> Rtc(myWire);
+
 
 // Konfiguracyjne zmienne - defaultowe wartości, nim będą przypisane z eepromu
 String password = "12345";

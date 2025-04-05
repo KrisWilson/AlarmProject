@@ -20,7 +20,9 @@
 //    Czujnik krańcowy -- misc.cpp  -- bool readDoor(pin)
 //    Syrena           -- misc.cpp  -- void play(pin, song)
 //    Ledy             -- misc.cpp  -- void light()
-//    HARD RTC (External) DS1302
+//    HARD RTC (External) config.cpp-- void setupRTC(), zmienna Rtc
+//    RFID czytnik     -- misc.cpp  -- void checkRFID()
+//    Na sygnał świetlny widocznie wypada mieć jakiś określony sposób....?
 
 // Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
 //    Kamera USB       
@@ -50,16 +52,47 @@ void loop()
 {
   RtcDateTime now = Rtc.GetDateTime();
   // Rozbrojony
-  if(currentMenuOption == 0)
-  {
-    
-    // Stan po włączeniu: Rozbrojony
+  switch(armMode){
+
+// 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
+  case ROZBROJONY: // stan Rozbrojony
     // wyświetlanie aktualnej daty i czasu
     Serial.print("Aktualna data i godzina: ");
     Serial.print(dateTime(now));
 
     wyswietl("Rozbrojony", 0);
     wyswietl(dateTime(now), 1);
+    // TOOD: CHECK INPUT 
+  break;
 
+// 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
+//      przykład gdy ktoś przełacza na tryb uzbrojony z rozbrojonego i chce opuścić lokal
+//      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
+  case OPUSCLOKAL: 
+    wyswietl("")
+  break;
+
+// 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
+  case UZBROJONY:
+    if(readPIR(pirSensor))  currentMenuOption = 3; // wykrycie ruchu, bez otwarcia drzwi = instant ban
+    if(readDoor(doorSensor)) currentMenuOption = 1;// Wykrycie otwarcia drzwi = daje czas na wpisanie kodu
+  break;
+
+
+// 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
+  case ALARM:
+  break;
+
+
+
+  default:
+    Serial.print("Something went unexpected wrong >:(");
+
+    wyswietl("Error: unknown status", 0);
+    wyswietl(dateTime(now), 1);
+    
   } 
+
+
+
 }

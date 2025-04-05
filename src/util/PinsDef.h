@@ -22,7 +22,7 @@ char keys[rowNum][colNum] = {
 };
 
 // RTC
-ThreeWire myWire(4,5,2); // IO, SCLK, CE
+ThreeWire myWire(4,5,2); // IO, SCLK, CE  // TODO: Sprawdź poprawne piny i dopasuj jak należy to
 
 
 
