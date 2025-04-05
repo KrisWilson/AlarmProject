@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include <PinsDef.h>
 #include <Keypad.h>
+#include <util/PinsDef.h>
 
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
