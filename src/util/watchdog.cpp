@@ -1,16 +1,23 @@
 #include <util/misc.cpp>
-bool disarmed = false; // zmienna do rozbrojenia systemu
+bool disarmed = false;  // zmienna do rozbrojenia systemu
 #define ROZBROJONY    0 // chilluje i czeka na uzbrojenie (0 -> 2 -> 1)
 #define UZBROJONY     1 // agresywnie wyszukuje inputów   (1 -> 5 lub 1 -> 3 -> 5)
 #define OPUSCLOKAL    2 // Czas na opuszczenie lokalu     (2 -> 1 lub 2 -> 5)
 #define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
 #define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
 #define ALARM         10// Alarm sygnalizuje katastrofę   (5 -> 0) 
-int armMode = 0;
+int armMode = ROZBROJONY;// aktualny status watchdog'a      
 
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
 
+
+bool watchdog(){
+  bool watchdogAlive = true;
+  while (watchdogAlive){
+    checkState();
+  }
+}
 
 // Funkcja która pozwala zmieniać wiele elementów jednocześnie przy zmianie stanu
 void changeMode(int _new){
@@ -77,6 +84,57 @@ void inputDelay(void *pvParameters)
       break;
     }
   }
+}
+
+
+void checkState(){
+  RtcDateTime now = Rtc.GetDateTime();
+  switch(armMode){
+
+  // 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
+    case ROZBROJONY: // stan Rozbrojony
+      // wyświetlanie aktualnej daty i czasu
+      Serial.print("Aktualna data i godzina: ");
+      Serial.print(dateTime(now));
+
+      wyswietl("Rozbrojony", 0);
+      wyswietl(dateTime(now), 1);
+      // TOOD: CHECK INPUT 
+    break;
+
+  // 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
+  //      przykład gdy ktoś przełacza na tryb uzbrojony z rozbrojonego i chce opuścić lokal
+  //      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
+    case OPUSCLOKAL: 
+      wyswietl("Uzbrajanie...");
+    break;
+
+  // 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
+    case UZBROJONY:
+      if(readPIR(pirSensor))   changeMode(ALARM);     // wykrycie ruchu, bez otwarcia drzwi = instant ban
+      if(readDoor(doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
+
+      Serial.print("Uzbrojony");
+      Serial.print(dateTime(now));
+
+      wyswietl("Uzbrojony", 0);
+      wyswietl(dateTime(now), 1);
+    break;
+
+
+  // 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
+    case ALARM:
+    break;
+
+
+
+    default:
+      Serial.print("Something went unexpected wrong >:(");
+
+      wyswietl("Error: unknown status", 0);
+      wyswietl(dateTime(now), 1);
+      
+    } 
 }
 
 void ArmedSystem()

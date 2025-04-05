@@ -23,6 +23,8 @@
 //    HARD RTC (External) config.cpp-- void setupRTC(), zmienna Rtc
 //    RFID czytnik     -- misc.cpp  -- void checkRFID()
 //    Na sygnał świetlny widocznie wypada mieć jakiś określony sposób....?
+// Main logic ->  watchdog.cpp
+
 
 // Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
 //    Kamera USB       
@@ -31,74 +33,25 @@
 
 void setup()
 {
-  lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
-  wyswietl("Konfiguracja",0);
-  setupRTC(); // inicjalizacja RTC
-  //setupFromEEPROM();  // TODO: DOKOŃCZ tą funkcję aby poprawnie pobierała dane do konfiguracji
-  Serial.begin(115200);
 
-  //  Stowrzenie nowego taska do odliczanania czasu 
-  //  xTaskCreatePinnedToCore(
-  //                         clockTask, /* Task function. */
-  //                         "TaskClock",   /* name of task. */
-  //                         10000,     /* Stack size of task */
-  //                         NULL,      /* parameter of the task */
-  //                         1,         /* priority of the task */
-  //                         &clockTaskHandle,    /* Task handle to keep track of created task */
-  //                         0);        /* pin task to core 0 */ 
+  lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
+  wyswietl("Konfiguracja");
+
+  setupRTC(); // inicjalizacja RTC
+  RtcDateTime now = Rtc.GetDateTime();
+  wyswietl(dateTime(now), 1);
+
+  Serial.begin(115200);
+  Serial.print("Aktualna data i godzina: " + dateTime(now) + "\n");
+
+  //setupFromEEPROM();  // TODO: DOKOŃCZ tą funkcję aby poprawnie pobierała dane do konfiguracji
+  watchdog();
+
 }
 
 void loop()
 {
+  wyswietl("watchdog.exe crashed");
   RtcDateTime now = Rtc.GetDateTime();
-  
-  switch(armMode){
-
-  // 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
-    case ROZBROJONY: // stan Rozbrojony
-      // wyświetlanie aktualnej daty i czasu
-      Serial.print("Aktualna data i godzina: ");
-      Serial.print(dateTime(now));
-
-      wyswietl("Rozbrojony", 0);
-      wyswietl(dateTime(now), 1);
-      // TOOD: CHECK INPUT 
-    break;
-
-  // 1. Okres przejściowy po wpisaniu kodu oraz przed wpisaniem kodu
-  //      przykład gdy ktoś przełacza na tryb uzbrojony z rozbrojonego i chce opuścić lokal
-  //      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
-    case OPUSCLOKAL: 
-      wyswietl("");
-    break;
-
-  // 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
-    case UZBROJONY:
-      if(readPIR(pirSensor))   changeMode(ALARM);     // wykrycie ruchu, bez otwarcia drzwi = instant ban
-      if(readDoor(doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
-      
-      Serial.print("Aktualna data i godzina: ");
-      Serial.print(dateTime(now));
-
-      wyswietl("Rozbrojony", 0);
-      wyswietl(dateTime(now), 1);
-    break;
-
-
-  // 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
-    case ALARM:
-    break;
-
-
-
-    default:
-      Serial.print("Something went unexpected wrong >:(");
-
-      wyswietl("Error: unknown status", 0);
-      wyswietl(dateTime(now), 1);
-      
-    } 
-
-
-
+  wyswietl(dateTime(now), 1);
 }
