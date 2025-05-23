@@ -1,10 +1,8 @@
 bool readPIR(
-        int pin,            // pin na którym znajduje się sygnał z czujnika PIR
-        bool _in = false    // TODO: usuń ten parametr. - Tymczasowe odbicie wejścia w celu testów
+        int pin            // pin na którym znajduje się sygnał z czujnika PIR
         );
 bool readDoor(
-        int pin,            // pin na którym znajduje się złącze stykowe do określonego chronionego obiektu
-        bool _in = false    // TODO: usuń ten parametr. - Tymczasowe odbicie wejścia w celu testów
+        int pin = 33        // pin na którym znajduje się złącze stykowe do określonego chronionego obiektu
         );
 void play(
         int pin,            // określony pin na buzzer

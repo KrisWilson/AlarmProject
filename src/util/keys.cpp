@@ -11,16 +11,23 @@ char keys[rowNum][colNum] = {
   {'7', '8', '9', 'C'},
   {'*', '0', '#', 'D'}
 };
+// Funkcjonalność: 1-0 - zwykłe liczby
+// * - cancel
+// # - confirm
+// A B C D
+
+//  1 2 3 A
+//  4 5 6 B
+//  7 8 9 C
+//  * 0 # D
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 String passwordFromMemory = "";
 
 
 // TODO: Ogarnąć cały ten plik
 // TODO: funkcja readKey() i readLine() dla LCD
-String ReadPassword()
+String readPassword() // TODO: zamienić tą funkcję aby porównywałą hasło wpisane z tym z pamięci i wypluwałą BOOLA
 {
-  return passwordFromMemory; // TODO: USUŃ TĄ LINIJKĘ
-
   String password = "";
   char key = keypad.getKey();
   while (key != '#')
@@ -28,6 +35,7 @@ String ReadPassword()
     if (key != NO_KEY)
     {
       password += key;
+      
       Serial.print(key);
     }
     key = keypad.getKey();
@@ -38,9 +46,8 @@ String ReadPassword()
 
 
 // create function to read numeric input that will end input with '#' key and in paramaters have min and max value
-int ReadNumericInput(int min, int max) // AI
+int readNumericInput(int min, int max) // AI KURWA JEBANE AI
 {
-  return 12345; // TODO: pls dont use AI >:(
   int value = 0;
   Serial.print("Enter a number between ");
   Serial.print(min);
@@ -61,7 +68,10 @@ int ReadNumericInput(int min, int max) // AI
       {
         Serial.println();
         if (value >= min && value <= max)
-          break;
+          {
+            return value;
+            break;
+          }
         else
           Serial.println("Invalid input, try again.");
       }

@@ -1,5 +1,4 @@
 // TO DO
-// rozpocznij nowy wątek z odliczaniem aktualnego czasu
 // zamień wszystki printy na wyświetlanie na ekranie wiadomości
 // poukładać funkcjie w innym pliku / posprzątać 
 // dodać funkcje ALARM()
@@ -29,6 +28,7 @@
 // Raspberry pi - serwer do zapisywania wideo z kamery, odbiera sygnał z arduino o urochomienie kamery
 //    Kamera USB 
 #include <Arduino.h>
+#include <Keypad.h>
 #include <RtcDS1302.h>
 #include "util/inc/PinsDef.h"
 #include "util/inc/include.h"
@@ -40,8 +40,8 @@ bool disarmed = false;  // zmienna do rozbrojenia systemu
 #define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
 #define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
 #define ALARM         10// Alarm sygnalizuje katastrofę   (5 -> 0) 
-int armMode = DEBUG;// aktualny status watchdog'a      
-
+int armMode = ROZBROJONY;// aktualny status watchdog'a      
+int test;
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
 
@@ -97,6 +97,7 @@ void changeMode(int _new){  // zmiana trybu watchdoga - przypisanie odpowiedniej
       play(buzzerpin,1);      // I po ptokach, mamy sygnał dźwiękowy
     break;
   }
+  Serial.println(getDate() + " Nowy tryb watchdog: " + (String)_new);  
 }
 
 void inputDelay(void *pvParameters) // ???
@@ -136,6 +137,17 @@ void checkState(){
     wyczyscLCD();
     wyswietl("Debugging", 0);
     wyswietl(getDate(), 1);
+    Serial.print(getDate() + "   ");
+    //Serial.print((String)analogRead(doorSensor) + " " + (String)analogRead(pirSensor) + "   ");
+    Serial.print(readDoor(doorSensor)? "Zamknięte drzwi":"Otwarte drzwi");
+    Serial.print("   ");
+    Serial.println(readPIR(pirSensor)? "Wykryto Ruch":"Nie wykryto ruchu");
+
+    // Wypisywanie wartości liczbowej z numpada
+    //test = readNumericInput(0,99999);
+    //wyswietl((String)test, 1);
+
+
   break;
 
 
@@ -144,9 +156,13 @@ void checkState(){
     // wyświetlanie aktualnej daty i czasu
     //  Serial.print("Aktualna data i godzina: ");
     //  Serial.print(getDate());
+    
       wyczyscLCD();
       wyswietl("Rozbrojony", 0);
       wyswietl(getDate(), 1);
+      if(anyKey()){
+        if(readPassword() == password);
+      }  
       // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
       // TODO: Utwórz opcje wchodzenia w menu i konfiguracje ustawień
     break;
@@ -224,7 +240,7 @@ void checkState(){
 // int passwordAttempts = 0;
 //   passwordInput:
 //     Serial.println("Podaj hasło: ");
-//     String password = ReadPassword();
+//     String password = readPassword();
 //     if (password != passwordFromMemory && passwordAttempts < 3)
 //     {
 //       Serial.println("Hasło jest niepoprawne!");
@@ -252,15 +268,19 @@ void checkState(){
 
 
 void watchdogSetup(){
+  
   lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
-  wyswietl("Konfiguracja");
+  wyswietl("Konfiguracja"); // LCD test
   pinSetup(); // inicjalizacja pinów (ustawienie ich trybów)
   setupRTC(); // inicjalizacja RTC (defualtowy kod z dokumentacji)
+  
   wyswietl(getDate(), 1); // wyświetl odczytaną datę z RTC
-  changeMode(DEBUG);      // ustaw tryb watchdoga na debug
-  // Sprintuj na port szeregowy aktualną datę
-  Serial.print("Aktualna data i godzina: " + getDate() + "\n");
-}
+  changeMode(armMode);    // ustaw tryb watchdoga na początkowy
+
+  Serial.println("Aktualna data:   " + getDate());
+  Serial.println("Data kompilacji: " + (String)__DATE__ + " " + (String)__TIME__); 
+  Serial.println("Inicjalizacja systemu zakończona");
+ }
 
 
 

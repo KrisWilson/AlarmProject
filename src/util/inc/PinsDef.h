@@ -2,11 +2,12 @@
 
 //Sensors
 #define pirSensor   13
-#define hallSensor  999999
-#define doorSensor  15
+#define hallSensor  999
+#define doorSensor  33
 #define buzzerpin   25
-#define ledStatus   14
-#define ledWaiting  15
+
+#define ledWaiting  32
+#define ledStatus   35
 
 //Keyboard
 #define rowNum      4

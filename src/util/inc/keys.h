@@ -1,4 +1,4 @@
 #include "util/inc/PinsDef.h"
 #include <Arduino.h>
-String ReadPassword();
-int ReadNumericInput(int min, int max);
+String readPassword();
+int readNumericInput(int min, int max);

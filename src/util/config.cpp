@@ -22,7 +22,7 @@ RtcDS1302<ThreeWire> Rtc(myWire);
 
 // Konfiguracyjne zmienne - defaultowe wartości, nim będą przypisane z eepromu
 String password = "12345";
-int exitTime = 15; // czas na wyjście po zabezpieczeniu
+int exitTime    = 15; // czas na wyjście po zabezpieczeniu
 
 #define EEPROM_SIZE 1024              //Rozmiar jest potrzebny do zainicjowania emulacji pamięci na ESP32
 #define configExistAddress 0x00       
@@ -121,7 +121,7 @@ int getExitTime(){
 //         Serial.println("Konfiguracja systemu...");
 //         passwordSection:
 //         // Wprowadź hasło do systemu max długość 1015 znaków
-//         String password = ReadPassword(); // zastąp ReadPassword() funkcją do odczytu hasła
+//         String password = readPassword(); // zastąp readPassword() funkcją do odczytu hasła
 //         if (password.length() > 1015)
 //         {
 //             Serial.println("Hasło jest za długie!");
@@ -137,11 +137,11 @@ int getExitTime(){
 
 //         // Zapisz czas na wyjście po zabezpieczeniu
 //         Serial.println("Wprowadź czas na wyjście po zabezpieczeniu (s):");
-//         exitTime = ReadNumericInput(0, 255); // w sekundach
+//         exitTime = readNumericInput(0, 255); // w sekundach
 //         EEPROM.write(exitTimeAddress, exitTime);
 //         // Zapisz czas podświetlenia ekranu
 //         Serial.println("Wprowadź czas podświetlenia ekranu (s):");
-//         int backlightTime = ReadNumericInput(0, 255); // w sekundach
+//         int backlightTime = readNumericInput(0, 255); // w sekundach
 //         EEPROM.write(backlightTimeAddress, backlightTime);
 
 //         // Zapisz w pierwszym bajcie pamięci że konfiguracja istnieje
@@ -164,7 +164,7 @@ int getExitTime(){
 //         int passwordAttempts = 0;
 //         passwordInput:
 //         Serial.println("Podaj hasło: ");
-//         String password = ReadPassword();
+//         String password = readPassword();
 //         if (password != passwordFromMemory && passwordAttempts < 3)
 //         {
 //             Serial.println("Hasło jest niepoprawne!");
@@ -179,15 +179,15 @@ int getExitTime(){
 //         // Jeśli wpisane hasło jest poprawne to podaj date i aktualny czas
 
 //         Serial.println("Podaj dzień:");
-//         day = ReadNumericInput(1, 31);
+//         day = readNumericInput(1, 31);
 //         Serial.println("Podaj miesiąc:");
-//         month = ReadNumericInput(1, 12);
+//         month = readNumericInput(1, 12);
 //         Serial.println("Podaj rok:");
-//         year = ReadNumericInput(0, 99);
+//         year = readNumericInput(0, 99);
 //         Serial.println("Podaj godzinę:");
-//         hour = ReadNumericInput(0, 23);
+//         hour = readNumericInput(0, 23);
 //         Serial.println("Podaj minutę:");
-//         minutes = ReadNumericInput(0, 59);
+//         minutes = readNumericInput(0, 59);
 //         }
 //     return false;
 // }
