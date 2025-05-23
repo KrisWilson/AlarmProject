@@ -2,8 +2,9 @@
 #include <Keypad.h>
 #include "util/inc/PinsDef.h"
 
-byte rowPins[rowNum] = {9, 8, 7, 6}; // Connect to the row pinouts of the keypad
-byte colPins[colNum] = {5, 4, 3, 2}; // Connect to the column pinouts of the keypad
+byte rowPins[rowNum]   = {19, 18, 5, 17};
+byte colPins[colNum ]  = {16, 4,  0, 2};
+
 char keys[rowNum][colNum] = {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},

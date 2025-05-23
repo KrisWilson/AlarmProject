@@ -5,14 +5,18 @@
 
 
 // W konfiguracji przechowujemy RTC i konfigi zwiazane z RTC// CONNECTIONS:
-// DS1302 CLK/SCLK --> 5
-// DS1302 DAT/IO --> 4
-// DS1302 RST/CE --> 2
+// DS1302 RST/CE --> 26
+// DS1302 CLK/SCLK --> 27
+// DS1302 DAT/IO --> 14
 // DS1302 VCC --> 3.3v - 5v
 // DS1302 GND --> GND
 // RTC
 
-ThreeWire myWire(4,5,2); // IO, SCLK, CE  // TODO: Sprawdź poprawne piny i dopasuj jak należy to
+const int CE = 26;    // RST
+const int IO = 27;    // DAT
+const int SCLK = 14;  // CLK
+
+ThreeWire myWire(IO,SCLK,CE); // IO, SCLK, CE  // TODO: Sprawdź poprawne piny i dopasuj jak należy to
 RtcDS1302<ThreeWire> Rtc(myWire);
 
 
@@ -26,6 +30,7 @@ int exitTime = 15; // czas na wyjście po zabezpieczeniu
 #define exitTimeAddress 0x3fe
 #define backlightTimeAddress 0x3fc
 
+// TODO: WYMIEŃ BATERIE W RTC.
 void setupRTC(){
     Rtc.Begin();
     RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
@@ -33,9 +38,6 @@ void setupRTC(){
 
     if (!Rtc.IsDateTimeValid()) 
     {
-        // Common Causes:
-        //    1) first time you ran and the device wasn't running yet
-        //    2) the battery on the device is low or even missing
         Serial.println("RTC lost confidence in the DateTime!");
         Rtc.SetDateTime(compiled);
     }
@@ -86,6 +88,8 @@ String dateTimeStr(const RtcDateTime& dt)
 }
 
 String getDate(){
+    //TODO: USUŃ ZAIMPLEMENTUJ NORMALNA DATE
+   // return __DATE__;
     return dateTimeStr(Rtc.GetDateTime());
 }
 

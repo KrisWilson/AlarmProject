@@ -6,3 +6,9 @@ void wyswietl(
         );
 
 void lcdSetup();
+
+void wyczyscWiersz(
+        int row = 0
+);
+
+void wyczyscLCD();

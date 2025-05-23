@@ -33,20 +33,28 @@
 #include "util/inc/PinsDef.h"
 #include "util/inc/include.h"
 bool disarmed = false;  // zmienna do rozbrojenia systemu
+#define DEBUG        -1 // DEBUG wszystko wyrzuca na port szeregowy.
 #define ROZBROJONY    0 // chilluje i czeka na uzbrojenie (0 -> 2 -> 1)
 #define UZBROJONY     1 // agresywnie wyszukuje inputów   (1 -> 5 lub 1 -> 3 -> 5)
 #define OPUSCLOKAL    2 // Czas na opuszczenie lokalu     (2 -> 1 lub 2 -> 5)
 #define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
 #define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
 #define ALARM         10// Alarm sygnalizuje katastrofę   (5 -> 0) 
-int armMode = ROZBROJONY;// aktualny status watchdog'a      
+int armMode = DEBUG;// aktualny status watchdog'a      
 
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
 
 // Funkcja która pozwala zmieniać wiele elementów jednocześnie przy zmianie stanu
-void changeMode(int _new){
+void changeMode(int _new){  // zmiana trybu watchdoga - przypisanie odpowiedniej konfiguracji
   switch(_new){
+    case DEBUG:
+      armMode = DEBUG;
+      light(ledStatus, HIGH);
+      light(ledWaiting, HIGH);
+      play(buzzerpin, 2, 1, true);
+    break;
+
     case ROZBROJONY:
       armMode = ROZBROJONY;
       light(ledStatus, LOW);  // Brak uzbrojenia
@@ -91,8 +99,7 @@ void changeMode(int _new){
   }
 }
 
-
-void inputDelay(void *pvParameters)
+void inputDelay(void *pvParameters) // ???
 {
   int i = 0;
   while(!disarmed){
@@ -111,16 +118,33 @@ void inputDelay(void *pvParameters)
   }
 }
 
+void pinSetup(){  //inicjacja trybu pinów
+  pinMode(buzzerpin,  OUTPUT);
+  pinMode(ledStatus,  OUTPUT);
+  pinMode(ledWaiting, OUTPUT);
+  pinMode(doorSensor, INPUT);
+  pinMode(pirSensor,  INPUT);
+}
 
 void checkState(){
   switch(armMode){
+  // -1 Debug Mode
+  case DEBUG:
+  // wyświetlanie aktualnej daty i czasu
+  //  Serial.print("Aktualna data i godzina: ");
+  //  Serial.print(getDate());
+    wyczyscLCD();
+    wyswietl("Debugging", 0);
+    wyswietl(getDate(), 1);
+  break;
+
 
   // 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
     case ROZBROJONY: // stan Rozbrojony
-      // wyświetlanie aktualnej daty i czasu
-      Serial.print("Aktualna data i godzina: ");
-      Serial.print(getDate());
-
+    // wyświetlanie aktualnej daty i czasu
+    //  Serial.print("Aktualna data i godzina: ");
+    //  Serial.print(getDate());
+      wyczyscLCD();
       wyswietl("Rozbrojony", 0);
       wyswietl(getDate(), 1);
       // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
@@ -131,12 +155,14 @@ void checkState(){
   //      przykład gdy ktoś przełacza na tryb uzbrojony z rozbrojonego i chce opuścić lokal
   //      albo gdy ktoś otwiera drzwi i wchodzi do lokalu podczas uzbrojonego stanu
     case OPUSCLOKAL: 
+      wyczyscLCD();
       wyswietl("Uzbrajanie...");
       sleep(getExitTime()); // __SECONDS????????
       changeMode(UZBROJONY);
     break;
 
     case WPISZKOD:
+      wyczyscLCD();
       wyswietl("Uga buga...");
       // TODO: WPISZ PASSWORD lub RFID w celu dezaktywowania alarmu
       changeMode(ALARM);
@@ -150,6 +176,7 @@ void checkState(){
       Serial.print("Uzbrojony");
       Serial.print(getDate());
 
+      wyczyscLCD();
       wyswietl("Uzbrojony", 0);
       wyswietl(getDate(), 1);
     break;
@@ -164,7 +191,7 @@ void checkState(){
 
     default:
       Serial.print("Something went unexpected wrong >:(");
-
+      wyczyscLCD();
       wyswietl("Error: unknown status", 0);
       wyswietl(getDate(), 1);
       
@@ -194,7 +221,7 @@ void checkState(){
 //                           &inputDelayTaskHandle,    /* Task handle to keep track of created task */
 //                           0);  
                           
-//     int passwordAttempts = 0;
+// int passwordAttempts = 0;
 //   passwordInput:
 //     Serial.println("Podaj hasło: ");
 //     String password = ReadPassword();
@@ -227,17 +254,22 @@ void checkState(){
 void watchdogSetup(){
   lcdSetup(); // inicjalizacja wyświetlacza LCD 16x2 
   wyswietl("Konfiguracja");
-  // TODO: SETUP from EEPROM  
-  setupRTC(); // inicjalizacja RTC
-  wyswietl(getDate(), 1);
-
-  Serial.begin(115200);
+  pinSetup(); // inicjalizacja pinów (ustawienie ich trybów)
+  setupRTC(); // inicjalizacja RTC (defualtowy kod z dokumentacji)
+  wyswietl(getDate(), 1); // wyświetl odczytaną datę z RTC
+  changeMode(DEBUG);      // ustaw tryb watchdoga na debug
+  // Sprintuj na port szeregowy aktualną datę
   Serial.print("Aktualna data i godzina: " + getDate() + "\n");
 }
+
+
+
 bool watchdog(){
   bool watchdogAlive = true;
+
   while (watchdogAlive){
     checkState();
   }
+
   return false;
 }

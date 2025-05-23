@@ -1,4 +1,4 @@
-#include <LiquidCrystal_I2C.h>
+  #include <LiquidCrystal_I2C.h>
 // Konfiguracja LCD 16x2
 int backlightTime = 0; // czas podświetlenia ekranu
 LiquidCrystal_I2C lcd(0x3F,20,4);  // set the LCD address to 0x3F for a 16 chars and 2 line display
@@ -21,6 +21,17 @@ void wyswietl(
       
         for(int i=0;i<_txt.length();i++)
           lcd.write(_txt[i]);
+}
+
+void wyczyscWiersz(int row=0){
+  lcd.setCursor(row,0);
+  for(int i=0;i<16;i++)
+    lcd.write(' ');
+}
+
+void wyczyscLCD(){
+  wyczyscWiersz(0);
+  wyczyscWiersz(1);
 }
 
 void lcdSetup(){
