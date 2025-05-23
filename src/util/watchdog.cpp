@@ -40,7 +40,7 @@ bool disarmed = false;  // zmienna do rozbrojenia systemu
 #define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
 #define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
 #define ALARM         10// Alarm sygnalizuje katastrofę   (5 -> 0) 
-int armMode = ROZBROJONY;// aktualny status watchdog'a      
+int armMode = DEBUG;// aktualny status watchdog'a      
 int test;
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
@@ -160,9 +160,9 @@ void checkState(){
       wyczyscLCD();
       wyswietl("Rozbrojony", 0);
       wyswietl(getDate(), 1);
-      if(anyKey()){
-        if(readPassword() == password);
-      }  
+      //if(anyKey()){
+       // if(readPassword() == password);
+     // }  
       // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
       // TODO: Utwórz opcje wchodzenia w menu i konfiguracje ustawień
     break;

@@ -133,6 +133,8 @@
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
+ .pio/libdeps/esp32dev/Keypad/src/Keypad.h \
+ .pio/libdeps/esp32dev/Keypad/src/Key.h \
  .pio/libdeps/esp32dev/RTC/src/RtcDS1302.h \
  .pio/libdeps/esp32dev/RTC/src/RtcUtility.h \
  .pio/libdeps/esp32dev/RTC/src/RtcDateTime.h \
