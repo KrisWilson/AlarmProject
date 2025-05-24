@@ -2,8 +2,8 @@
 #include <Keypad.h>
 #include "util/inc/PinsDef.h"
                         // 19 18 5 - kolizja z RFID
-byte rowPins[rowNum]   = {0, 0, 0, 17};
-byte colPins[colNum ]  = {16, 4,  0, 2};
+byte rowPins[rowNum]   = {34, 35, 32, 33};
+byte colPins[colNum ]  = {16, 4,  0,  2};
 
 char keys[rowNum][colNum] = {
   {'1', '2', '3', 'A'},

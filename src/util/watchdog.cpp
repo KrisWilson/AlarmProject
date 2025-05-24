@@ -52,7 +52,8 @@ bool disarmed  = false; // zmienna do rozbrojenia systemu
 #define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
 #define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
 #define ALARM        10 // Alarm sygnalizuje katastrofę   (5 -> 0) 
-#define KOPERNIKCARD "e2 5f 9a d4" // ID Card - Kopernika
+#define KOPERNIKCARD "04 04 4e 62 c5 24 81 " // ID Card - Kopernika
+#define BLUEPIN      "e2 5f 9a d4 "          // ID Blue - Pinezka
 int armMode    = ROZBROJONY; // aktualny status watchdog'a      
 int test;
 TaskHandle_t clockTaskHandle = NULL;
@@ -147,16 +148,21 @@ bool checkValidCard(){
       if (mfrc522.uid.uidByte[i] < 0x10) {
         uidString += "0"; 
       }
-      uidString += String(mfrc522.uid.uidByte[i], HEX);
-      uidString += " ";
+      uidString += String(mfrc522.uid.uidByte[i], HEX) + " ";
     }
+
     Serial.println(getDate() + " Odczytano: " + uidString);
-    if(uidString == KOPERNIKCARD) return true;
+    if(uidString == KOPERNIKCARD || uidString == BLUEPIN){
+      Serial.println(getDate() + " Wykryto zgodność UID RFID");
+      return true;
+    }
   }
   return false;
 }
 
+unsigned int checkTime;
 void checkState(){
+  checkTime = millis();
   char c;
   switch(armMode){
   // -1 Debug Mode
@@ -174,7 +180,7 @@ void checkState(){
     Serial.println(readPIR(pirSensor)? "Wykryto Ruch":"Nie wykryto ruchu");
   // Wypisywanie wartości liczbowej z numpada
    
-    if( (c = detectKey()))
+    if( (c = detectKey()) != (char)0 )
       switch(c){
         case 'A':
           changeMode(ROZBROJONY);
@@ -206,24 +212,23 @@ void checkState(){
       wyczyscLCD();
       wyswietl("Rozbrojony", 0);
       wyswietl(getDate(), 1);
-      if( (c = detectKey()))
+      if( (c = detectKey()) != (char)0) // wydaje mi się że (char)0 to i tak 0 wiec false, wiec mozna pominąć !=
         switch(c){
-          case 'A':
+           case 'A':
             changeMode(DEBUG);
-          break;
+            break;
           case 'B':
             changeMode(OPUSCLOKAL);
-          break;
+            break;
           case 'C':
-          break;
+            break;
           case 'D':
-          break;
+            break;
           default:
             Serial.println(c); 
-          break;
+            break;
         }
-      if(checkValidCard()) changeMode(DEBUG);
-      // TODO: RFID w celu uzbrojenia alarmu
+      if(checkValidCard()) changeMode(OPUSCLOKAL);
       // TODO: Utwórz opcje wchodzenia w menu i konfiguracje ustawień
     break;
 
@@ -240,7 +245,8 @@ void checkState(){
 
     case WPISZKOD:
       wyczyscLCD();
-      wyswietl("Uga buga...");
+      wyswietl("Oczekiwanie");
+      wyswietl("Oczekiwanie",1);
       if(checkValidCard()) changeMode(ROZBROJONY);
       // TODO: WPISZ PASSWORD w celu dezaktywowania alarmu
       changeMode(ALARM);
@@ -250,8 +256,9 @@ void checkState(){
     case UZBROJONY:
       if(readPIR(pirSensor))   changeMode(ALARM);     // Wykrycie ruchu, bez otwarcia drzwi = instant ban
       if(readDoor(!doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
-      wyczyscLCD();
       if(checkValidCard()) changeMode(ROZBROJONY);
+
+      wyczyscLCD();
       wyswietl("Uzbrojony", 0);
       wyswietl(getDate(), 1);
     break;
@@ -273,6 +280,7 @@ void checkState(){
       wyswietl(getDate(), 1);
       break;
     } 
+    Serial.println(getDate() + " pętla zakończona: " + (String)(millis()-checkTime) + " [ms]");
 }
 
 // void ArmedSystem()
@@ -339,8 +347,7 @@ void watchdogSetup(){
   changeMode(armMode);    // ustaw tryb watchdoga na początkowy
 
   mfrc522.PCD_Init();    // Init MFRC522 board.
-  MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);	// Show details of PCD - MFRC522 Card Reader details.
-  Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
+//MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);	// Show details of PCD - MFRC522 Card Reader details.
 
   Serial.println("Aktualna data:   " + getDate());
   Serial.println("Data kompilacji: " + (String)__DATE__ + " " + (String)__TIME__); 
@@ -353,21 +360,8 @@ bool watchdog(){
   bool watchdogAlive = true;
 
   while (watchdogAlive){
-  
-  if (mfrc522.PICC_ReadCardSerial() || mfrc522.PICC_IsNewCardPresent()) {
-    String uidString = "";
-    for (byte i = 0; i < mfrc522.uid.size; i++) {
-      if (mfrc522.uid.uidByte[i] < 0x10) {
-        uidString += "0"; 
-      }
-      uidString += String(mfrc522.uid.uidByte[i], HEX);
-      uidString += " ";
-    }
-    Serial.println(getDate() + " " + uidString);
+    checkState();
   }
-
-  checkState();
-}
 
   return false;
 }
