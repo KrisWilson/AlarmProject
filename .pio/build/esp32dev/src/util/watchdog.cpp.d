@@ -143,4 +143,15 @@
  .pio/libdeps/esp32dev/RTC/src/RtcLocaleEn.h \
  .pio/libdeps/esp32dev/RTC/src/ThreeWire.h src/util/inc/PinsDef.h \
  src/util/inc/include.h src/util/inc/misc.h src/util/inc/keys.h \
- src/util/inc/lcd.h src/util/inc/menu.h src/util/inc/config.h
+ src/util/inc/lcd.h src/util/inc/menu.h src/util/inc/config.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522v2.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/require_cpp11.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/deprecated.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522Constants.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522Driver.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522DriverSPI.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src/SPI.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-spi.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522DriverPin.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522DriverPinSimple.h \
+ .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522Debug.h

@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <Keypad.h>
 #include "util/inc/PinsDef.h"
-
-byte rowPins[rowNum]   = {19, 18, 5, 17};
+                        // 19 18 5 - kolizja z RFID
+byte rowPins[rowNum]   = {0, 0, 0, 17};
 byte colPins[colNum ]  = {16, 4,  0, 2};
 
 char keys[rowNum][colNum] = {
@@ -22,6 +22,16 @@ char keys[rowNum][colNum] = {
 //  * 0 # D
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, rowNum, colNum);
 String passwordFromMemory = "";
+
+char detectKey(char key = ' '){
+  if(key == ' '){
+    char c = keypad.getKey();
+    if(c != NO_KEY)
+      return c;
+    else
+      return NO_KEY; // NO_KEY == 0
+  }
+}
 
 
 // TODO: Ogarnąć cały ten plik

@@ -32,15 +32,28 @@
 #include <RtcDS1302.h>
 #include "util/inc/PinsDef.h"
 #include "util/inc/include.h"
-bool disarmed = false;  // zmienna do rozbrojenia systemu
+#include <MFRC522v2.h>
+#include <MFRC522DriverSPI.h>
+#include <MFRC522DriverPinSimple.h>
+#include <MFRC522Debug.h>
+
+// Learn more about using SPI/I2C or check the pin assigment for your board: https://github.com/OSSLibraries/Arduino_MFRC522v2#pin-layout
+MFRC522DriverPinSimple ss_pin(5);
+
+MFRC522DriverSPI driver{ss_pin}; // Create SPI driver
+//MFRC522DriverI2C driver{};     // Create I2C driver
+MFRC522 mfrc522{driver};         // Create MFRC522 instance
+
+bool disarmed  = false; // zmienna do rozbrojenia systemu
 #define DEBUG        -1 // DEBUG wszystko wyrzuca na port szeregowy.
 #define ROZBROJONY    0 // chilluje i czeka na uzbrojenie (0 -> 2 -> 1)
 #define UZBROJONY     1 // agresywnie wyszukuje inputów   (1 -> 5 lub 1 -> 3 -> 5)
 #define OPUSCLOKAL    2 // Czas na opuszczenie lokalu     (2 -> 1 lub 2 -> 5)
 #define WPISZKOD      3 // Czas na wpisanie kodu          (3 -> 5 lub 3 -> 0)
 #define ZABLOKOWANY   4 // ?? Zakładam moment błędnie wpisanego kodu, ale to bez sensu. (4->5)
-#define ALARM         10// Alarm sygnalizuje katastrofę   (5 -> 0) 
-int armMode = DEBUG;// aktualny status watchdog'a      
+#define ALARM        10 // Alarm sygnalizuje katastrofę   (5 -> 0) 
+#define KOPERNIKCARD "e2 5f 9a d4" // ID Card - Kopernika
+int armMode    = ROZBROJONY; // aktualny status watchdog'a      
 int test;
 TaskHandle_t clockTaskHandle = NULL;
 TaskHandle_t inputDelayTaskHandle = NULL;
@@ -59,7 +72,7 @@ void changeMode(int _new){  // zmiana trybu watchdoga - przypisanie odpowiedniej
       armMode = ROZBROJONY;
       light(ledStatus, LOW);  // Brak uzbrojenia
       light(ledWaiting, LOW); // Brak oczekiwania
-      play(buzzerpin,0);      // Brak sygnału dźwiękowego
+      play(buzzerpin,0,0,false);      // Brak sygnału dźwiękowego
     break;
 
     case UZBROJONY:
@@ -127,7 +140,24 @@ void pinSetup(){  //inicjacja trybu pinów
   pinMode(pirSensor,  INPUT);
 }
 
+bool checkValidCard(){
+  if (mfrc522.PICC_ReadCardSerial() || mfrc522.PICC_IsNewCardPresent()) {
+    String uidString = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      if (mfrc522.uid.uidByte[i] < 0x10) {
+        uidString += "0"; 
+      }
+      uidString += String(mfrc522.uid.uidByte[i], HEX);
+      uidString += " ";
+    }
+    Serial.println(getDate() + " Odczytano: " + uidString);
+    if(uidString == KOPERNIKCARD) return true;
+  }
+  return false;
+}
+
 void checkState(){
+  char c;
   switch(armMode){
   // -1 Debug Mode
   case DEBUG:
@@ -138,32 +168,62 @@ void checkState(){
     wyswietl("Debugging", 0);
     wyswietl(getDate(), 1);
     Serial.print(getDate() + "   ");
-    //Serial.print((String)analogRead(doorSensor) + " " + (String)analogRead(pirSensor) + "   ");
+    Serial.print((String)analogRead(doorSensor) + " " + (String)analogRead(pirSensor) + "   ");
     Serial.print(readDoor(doorSensor)? "Zamknięte drzwi":"Otwarte drzwi");
     Serial.print("   ");
     Serial.println(readPIR(pirSensor)? "Wykryto Ruch":"Nie wykryto ruchu");
+  // Wypisywanie wartości liczbowej z numpada
+   
+    if( (c = detectKey()))
+      switch(c){
+        case 'A':
+          changeMode(ROZBROJONY);
+        break;
 
-    // Wypisywanie wartości liczbowej z numpada
-    //test = readNumericInput(0,99999);
-    //wyswietl((String)test, 1);
+        case 'B':
+          changeMode(OPUSCLOKAL);
+        break;
 
+        case 'C':
+          changeMode(UZBROJONY);
+        break;
 
+        case 'D':
+         changeMode(ZABLOKOWANY);
+        break;
+
+        default:
+          Serial.println(c); 
+        break;
+      }
+  //test = readNumericInput(0,99999);
+  //wyswietl((String)test, 1);
   break;
 
 
   // 0. Rozbrojony          - czujniki nieaktywne, kamera wyłączona
     case ROZBROJONY: // stan Rozbrojony
-    // wyświetlanie aktualnej daty i czasu
-    //  Serial.print("Aktualna data i godzina: ");
-    //  Serial.print(getDate());
-    
       wyczyscLCD();
       wyswietl("Rozbrojony", 0);
       wyswietl(getDate(), 1);
-      //if(anyKey()){
-       // if(readPassword() == password);
-     // }  
-      // TODO: WPISZ PASSWORD lub RFID w celu uzbrojenia alarmu
+      if( (c = detectKey()))
+        switch(c){
+          case 'A':
+            changeMode(DEBUG);
+          break;
+          case 'B':
+            changeMode(OPUSCLOKAL);
+          break;
+          case 'C':
+          break;
+          case 'D':
+          break;
+          default:
+            Serial.println(c); 
+          break;
+        }
+      if(checkValidCard()) changeMode(DEBUG);
+      // TODO: RFID w celu uzbrojenia alarmu
       // TODO: Utwórz opcje wchodzenia w menu i konfiguracje ustawień
     break;
 
@@ -174,25 +234,24 @@ void checkState(){
       wyczyscLCD();
       wyswietl("Uzbrajanie...");
       sleep(getExitTime()); // __SECONDS????????
+      if(checkValidCard()) changeMode(ROZBROJONY);
       changeMode(UZBROJONY);
     break;
 
     case WPISZKOD:
       wyczyscLCD();
       wyswietl("Uga buga...");
-      // TODO: WPISZ PASSWORD lub RFID w celu dezaktywowania alarmu
+      if(checkValidCard()) changeMode(ROZBROJONY);
+      // TODO: WPISZ PASSWORD w celu dezaktywowania alarmu
       changeMode(ALARM);
     break;
 
   // 2. Uzbrojony           - czujnik krańcowy i ruchu aktywne
     case UZBROJONY:
-      if(readPIR(pirSensor))   changeMode(ALARM);     // wykrycie ruchu, bez otwarcia drzwi = instant ban
-      if(readDoor(doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
-
-      Serial.print("Uzbrojony");
-      Serial.print(getDate());
-
+      if(readPIR(pirSensor))   changeMode(ALARM);     // Wykrycie ruchu, bez otwarcia drzwi = instant ban
+      if(readDoor(!doorSensor)) changeMode(WPISZKOD);  // Wykrycie otwarcia drzwi = daje czas na wpisanie kodu   
       wyczyscLCD();
+      if(checkValidCard()) changeMode(ROZBROJONY);
       wyswietl("Uzbrojony", 0);
       wyswietl(getDate(), 1);
     break;
@@ -201,16 +260,18 @@ void checkState(){
   // 3. Alarm aktywny       - kamera, sygnał dźwiękowy i świetlny włącza się po wykryciu ruchu
     case ALARM:
       // TODO: w sumie to oczekuj na input dezaktywacji alarmu
+      wyczyscLCD();
+      wyswietl("ALARM");
+      if(checkValidCard()) changeMode(ROZBROJONY);
+      // TODO: WPISZ PASSWORD lub RFID w celu dezaktywowania alarmu
     break;
-
-
 
     default:
       Serial.print("Something went unexpected wrong >:(");
       wyczyscLCD();
-      wyswietl("Error: unknown status", 0);
+      wyswietl("unknown status", 0);
       wyswietl(getDate(), 1);
-      
+      break;
     } 
 }
 
@@ -277,6 +338,10 @@ void watchdogSetup(){
   wyswietl(getDate(), 1); // wyświetl odczytaną datę z RTC
   changeMode(armMode);    // ustaw tryb watchdoga na początkowy
 
+  mfrc522.PCD_Init();    // Init MFRC522 board.
+  MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);	// Show details of PCD - MFRC522 Card Reader details.
+  Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
+
   Serial.println("Aktualna data:   " + getDate());
   Serial.println("Data kompilacji: " + (String)__DATE__ + " " + (String)__TIME__); 
   Serial.println("Inicjalizacja systemu zakończona");
@@ -288,8 +353,21 @@ bool watchdog(){
   bool watchdogAlive = true;
 
   while (watchdogAlive){
-    checkState();
+  
+  if (mfrc522.PICC_ReadCardSerial() || mfrc522.PICC_IsNewCardPresent()) {
+    String uidString = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      if (mfrc522.uid.uidByte[i] < 0x10) {
+        uidString += "0"; 
+      }
+      uidString += String(mfrc522.uid.uidByte[i], HEX);
+      uidString += " ";
+    }
+    Serial.println(getDate() + " " + uidString);
   }
+
+  checkState();
+}
 
   return false;
 }

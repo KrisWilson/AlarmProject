@@ -17,6 +17,8 @@
 //      Dioda Y służy do określenia stanu oczekiwania na kod    (Stan przedalarmowy)
 //  2 diody ponieważ nie chcę się bawić w migotanie diody, bo to wymaga używanie wielowątkowości która aktualnie może zaszkodzić przez mój brak doświadczenia
 
+#include "inc/pitches.h"
+
 // funkcja odczytania z czujnika PIR czy wykrył ruch
 #include <io_pin_remap.h>
 bool readPIR(
@@ -26,7 +28,7 @@ bool readPIR(
     // PIR - poziom HIGH na pinie oznacza wykryty ruch, LOW oznacza brak ruchu.
     // System PIR załącza się w 20 sekund, więc potencjalnie istnieje zagrożenie złego odczytu przy boot-upie.
 
-    return digitalRead(pin);  // tymczasowe rozwiązanie
+    return (analogRead(pin)==4095? true:false);  // tymczasowe rozwiązanie
     //return _in;                 // tymczasowe rozwiązanie
 }
 
@@ -37,16 +39,15 @@ bool readDoor(
     // propozycja to użycie read signal na określonym pinie, czy jest stan wysoki (Zamknięty obwód, czyli zamknięte drzwi)
     // jeszcze lepszą opcją byłoby wywołać przerwanie i wysłać sygnał otwarcia drzwi, aby nie było sytuacji że
     // otwarcie drzwi w idealnej sekundzie moze spowodować uniknięcie sygnału. - jednakże to nie realne, otwarcie i zamknięcie w mniej niż 0.1s    
-    return digitalRead(pin);                // tymczasowe rozwiązanie
-    //return _in;
+    return digitalRead(pin);
 }
 
 
 //TODO: Dodaj funkcję na RFID oraz sygnał alarmowy-świetlny
 
 //  w sumie to nie widzi mi się aby modularnie nadawać syrenę, dajmy po prostu głośny pisk
-//  jeżeli uda się to w asynchroniczny sposób zrobić to dajmy tutaj syrenę aby w tle sobie migotała
-void play(
+
+  void play(
         int pin,            // określony pin na buzzer
         int song=0,         // określony sygnał, zero oznacza domyślny = stan wysoki pisku
         int length=0,       // określona długość w sekundach, zero oznacza do odwołania
@@ -58,6 +59,31 @@ void play(
     else
         digitalWrite(pin,LOW);
         // TODO: USTAWIENIE PINU BUZZER NA NISKI STAN (wyłączony)
+
+
+    //  jeżeli uda się to w asynchroniczny sposób zrobić to dajmy tutaj syrenę aby w tle sobie migotała
+    // notes in the melody:
+    int melody[] = {
+        NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4
+    };
+    // note durations: 4 = quarter note, 8 = eighth note, etc.:
+    int noteDurations[] = {
+        4, 8, 8, 4, 4, 4, 4, 4
+    };
+    // iterate over the notes of the melody:
+    for (int thisNote = 0; thisNote < 8; thisNote++) {
+        // to calculate the note duration, take one second divided by the note type.
+        //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+        int noteDuration = 1000 / noteDurations[thisNote];
+        tone(25, melody[thisNote], noteDuration);
+        // to distinguish the notes, set a minimum time between them.
+        // the note's duration + 30% seems to work well:
+        int pauseBetweenNotes = noteDuration * 1.30;
+        delay(pauseBetweenNotes);
+        // stop the tone playing:
+        noTone(25);
+    }
+
 }
 
 

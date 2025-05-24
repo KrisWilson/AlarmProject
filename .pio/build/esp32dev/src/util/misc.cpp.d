@@ -1,4 +1,5 @@
 .pio/build/esp32dev/src/util/misc.cpp.o: src/util/misc.cpp \
+ src/util/inc/pitches.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \
