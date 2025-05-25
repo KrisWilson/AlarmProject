@@ -3,7 +3,7 @@
 //Sensors
 #define pirSensor   13
 #define hallSensor  999
-#define doorSensor  2
+#define doorSensor  33
 #define buzzerpin   25
 
 #define ledWaiting  15

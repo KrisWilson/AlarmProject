@@ -133,8 +133,6 @@
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
- .pio/libdeps/esp32dev/Keypad/src/Keypad.h \
- .pio/libdeps/esp32dev/Keypad/src/Key.h \
  .pio/libdeps/esp32dev/RTC/src/RtcDS1302.h \
  .pio/libdeps/esp32dev/RTC/src/RtcUtility.h \
  .pio/libdeps/esp32dev/RTC/src/RtcDateTime.h \
@@ -142,8 +140,8 @@
  .pio/libdeps/esp32dev/RTC/src/RtcLocaleEnUs.h \
  .pio/libdeps/esp32dev/RTC/src/RtcLocaleEn.h \
  .pio/libdeps/esp32dev/RTC/src/ThreeWire.h src/util/inc/PinsDef.h \
- src/util/inc/include.h src/util/inc/misc.h src/util/inc/keys.h \
- src/util/inc/lcd.h src/util/inc/menu.h src/util/inc/config.h \
+ src/util/inc/include.h src/util/inc/misc.h src/util/inc/lcd.h \
+ src/util/inc/config.h \
  .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522v2.h \
  .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/require_cpp11.h \
  .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/deprecated.h \

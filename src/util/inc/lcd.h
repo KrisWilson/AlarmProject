@@ -12,3 +12,6 @@ void wyczyscWiersz(
 );
 
 void wyczyscLCD();
+
+// Pozwala zmieniać podświetlenie LCD
+void lcdBackight(bool set = true);

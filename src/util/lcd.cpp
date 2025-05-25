@@ -39,4 +39,7 @@ void lcdSetup(){
   lcd.backlight();
 }
 
-//TODO: dodaj funkcje zarządzającą backlight (toggle/set)
+// Pozwala zmieniać podświetlenie LCD
+void lcdBackight(bool set = true){
+  lcd.setBacklight(set);
+}
