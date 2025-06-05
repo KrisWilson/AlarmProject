@@ -30,6 +30,17 @@
 #include <MFRC522DriverPinSimple.h>
 #include <MFRC522Debug.h>
 
+#include <WiFi.h>
+#include <WebServer.h>
+const char* ssid = "ActualyNotMeowMeow";
+const char* WiFipassword = "Meow1234!"; 
+WebServer server(80);
+
+void handleUnlockDevice();
+void handleLockDevice();
+void handleCheckLockStatus();
+void handleNotFound();
+
 // Learn more about using SPI/I2C or check the pin assigment for your board: https://github.com/OSSLibraries/Arduino_MFRC522v2#pin-layout
 MFRC522DriverPinSimple ss_pin(5);
 
@@ -76,10 +87,83 @@ void watchdogSetup(){
   MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);	// Show details of PCD - MFRC522 Card Reader details.
   Serial.println("Aktualna data:   " + getDate());
   Serial.println("Data kompilacji: " + (String)__DATE__ + " " + (String)__TIME__); 
+
+  wyswietl("Konfig - WiFi"); 
+  //Configure static IP address
+  // IPAddress local_IP(192, 168, 0, 50);    // Your desired IP address
+  // IPAddress gateway(192, 168, 0, 1);       // Your router's IP address
+  // IPAddress subnet(255, 255, 255, 0);      // Subnet mask
+  // IPAddress primaryDNS(8, 8, 8, 8);        // Primary DNS (Google DNS)
+  // IPAddress secondaryDNS(8, 8, 4, 4);      // Secondary DNS (Google DNS)
+  // // Configure WiFi with static IP
+  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  //   Serial.println("Static IP configuration failed");
+  // }
+  WiFi.begin(ssid, WiFipassword);
+  Serial.print("Connecting to WiFi");
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  Serial.println("WiFi connected!");
+  wyswietl("WiFi-Connected"); 
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/unlock_device", HTTP_GET, handleUnlockDevice);
+  server.on("/lock_device", HTTP_GET, handleLockDevice);
+  server.on("/check_lock_status", HTTP_GET, handleCheckLockStatus);
+  server.onNotFound(handleNotFound);
+  server.begin();
+  Serial.println("HTTP server started");
+
   Serial.println("Inicjalizacja systemu zakończona");
 
   changeMode(armMode);    // ustaw tryb watchdoga na początkowy
  }
+
+ void handleUnlockDevice() {
+  Serial.println("Unlock command received");
+  changeMode(ROZBROJONY);
+  server.send(200, "application/json", "{\"status\":\"success\",\"action\":\"unlock\",\"message\":\"Device unlocked\"}");
+}
+
+void handleLockDevice() {
+  Serial.println("Lock command received");
+  changeMode(OPUSCLOKAL);
+  server.send(200, "application/json", "{\"status\":\"success\",\"action\":\"lock\",\"message\":\"Device locked\"}");
+}
+
+void handleCheckLockStatus() {
+  Serial.println("Status check requested");
+  
+  // Create JSON response with current status and alarm state
+  String response = "{\"status\":\"success\",\"locked\":" + String((armMode==UZBROJONY) ? "true" : "false") + 
+                   ",\"alarm_fired\":" + String((armMode==ALARM) ? "true" : "false") + "}";
+  
+  server.send(200, "application/json", response);
+}
+
+void handleNotFound() {
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += server.uri();
+  message += "\nMethod: ";
+  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+  message += "\nArguments: ";
+  message += server.args();
+  message += "\n";
+  
+  for (uint8_t i = 0; i < server.args(); i++) {
+    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  }
+  
+  server.send(404, "text/plain", message);
+}
+
 
 // Funkcja która pozwala zmieniać wiele elementów jednocześnie przy zmianie stanu
 void changeMode(int _new){  // zmiana trybu watchdoga - przypisanie odpowiedniej konfiguracji
@@ -258,7 +342,9 @@ void checkState(){
 
 bool watchdog(){
   bool watchdogAlive = true;
-  while (watchdogAlive)
-    checkState();
+  while (watchdogAlive){
+    checkState();    
+    server.handleClient();
+  }
   return false;
 }

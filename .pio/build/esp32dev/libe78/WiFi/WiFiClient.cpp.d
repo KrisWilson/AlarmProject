@@ -1,4 +1,6 @@
-.pio/build/esp32dev/src/util/watchdog.cpp.o: src/util/watchdog.cpp \
+.pio/build/esp32dev/libe78/WiFi/WiFiClient.cpp.o: \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiClient.cpp \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiClient.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/freertos/FreeRTOS.h \
@@ -133,26 +135,7 @@
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
- .pio/libdeps/esp32dev/RTC/src/RtcDS1302.h \
- .pio/libdeps/esp32dev/RTC/src/RtcUtility.h \
- .pio/libdeps/esp32dev/RTC/src/RtcDateTime.h \
- .pio/libdeps/esp32dev/RTC/src/RtcTimeZone.h \
- .pio/libdeps/esp32dev/RTC/src/RtcLocaleEnUs.h \
- .pio/libdeps/esp32dev/RTC/src/RtcLocaleEn.h \
- .pio/libdeps/esp32dev/RTC/src/ThreeWire.h src/util/inc/PinsDef.h \
- src/util/inc/include.h src/util/inc/misc.h src/util/inc/lcd.h \
- src/util/inc/config.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522v2.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/require_cpp11.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/deprecated.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522Constants.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522Driver.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522DriverSPI.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/SPI/src/SPI.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-spi.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522DriverPin.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522DriverPinSimple.h \
- .pio/libdeps/esp32dev/Arduino_MFRC522v2/src/MFRC522Debug.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Client.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFi.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Print.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/IPv6Address.h \
@@ -206,15 +189,21 @@
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/wifi_provisioning/include/wifi_provisioning/wifi_config.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiAP.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiScan.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiClient.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Client.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiServer.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Server.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiUdp.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/Udp.h \
  C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/cores/esp32/cbuf.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src/WebServer.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src/HTTP_Method.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/nghttp/port/include/http_parser.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src/Uri.h \
- C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src/detail/RequestHandler.h
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/sockets.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include/sys/poll.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/netif.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/pbuf.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/stats.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/mem.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/memp.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/priv/memp_std.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/priv/memp_priv.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/priv/mem_priv.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/inet.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/errno.h \
+ C:/Users/lifte/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/netdb.h

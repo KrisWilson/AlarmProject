@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 //Sensors
-#define pirSensor   13
+#define pirSensor   35
 #define hallSensor  999
 #define doorSensor  33
 #define buzzerpin   25
